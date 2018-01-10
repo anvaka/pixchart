@@ -9,13 +9,31 @@ module.exports = {
   createBuffer: createBuffer,
   bindAttribute: bindAttribute,
   createProgram: createProgram,
-  createShader: createShader
+  createShader: createShader,
+  createTexture: createTexture
 }
 
 function bindTexture(gl, texture, unit) {
   gl.activeTexture(gl.TEXTURE0 + unit);
   gl.bindTexture(gl.TEXTURE_2D, texture);
 }
+
+function createTexture(gl, image) {
+  var texture = gl.createTexture();
+  var level = 0;
+  var internalFormat = gl.RGBA;
+  var srcFormat = gl.RGBA;
+  var srcType = gl.UNSIGNED_BYTE;
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, srcFormat, srcType, image);
+
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+  return texture;
+}
+
 
 function createBuffer(gl, data) {
   var buffer = gl.createBuffer();

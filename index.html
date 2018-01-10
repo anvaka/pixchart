@@ -26,6 +26,15 @@ body {
   left: 0;
   top: 0;
 }
+#progress {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 48;
+  display: none;
+}
 * {
   box-sizing: border-box;
 }
@@ -33,6 +42,7 @@ body {
   </head>
   <body>
     <canvas id='scene'></canvas>
+    <div id='progress'></div>
     <div id="app"></div>
     <!-- built files will be auto injected -->
 <script>
