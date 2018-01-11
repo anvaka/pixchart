@@ -1,4 +1,5 @@
-var chroma = require('chroma-js')
+// var chroma = require('chroma-js')
+var {rgbToHsl} = require('./colors');
 
 module.exports = loadParticles;
 
@@ -38,11 +39,11 @@ function loadParticles(image, options) {
   scheduleWork();
   
   return new Promise((resolve) => { actualResolve = resolve; });
-
   // TODO: Should be customizable.
   function getValue(r, g, b) {
-    return b/255;
-    return chroma(r, g, b).get('lch.c')/80;
+    // return b/255;
+    return rgbToHsl(r, g, b)[2];
+    //return chroma(r, g, b).get('hsl.l');
   }
   
   function scheduleWork() {
@@ -76,7 +77,7 @@ function loadParticles(image, options) {
       var rnd = Math.random();// * Math.abs(0.5 -v);
       particleInfo[idx + 0] = v;
       particleInfo[idx + 1] = currentYValue - 1;
-      particleInfo[idx + 2] = framesCount/2 + rnd * (framesCount/2);
+      particleInfo[idx + 2] = framesCount - rnd * framesCount*0.3;
       particleInfo[idx + 3] = pixelIndex;
 
       idx += 4;

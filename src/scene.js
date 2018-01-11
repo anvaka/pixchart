@@ -27,7 +27,7 @@ function initScene(canvas) {
       progressElement.style.display = 'none';
       if (progress.imageObject.isUrl) {
         // other objects cannot be shared
-        qs.set('link', progress.imageLink)
+        qs.set('link', progress.imageObject.name)
       } else {
         qs.set('link', '')
       }

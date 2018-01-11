@@ -39,7 +39,7 @@ function pixChart(imageLink, options) {
   var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 
   var state = 1; // expand
-  var framesCount = 90;
+  var framesCount = 120;
   var nextAnimationFrame, pendingTimeout;
   var disposed = false;
   var particleLoaderSettings = {
@@ -140,7 +140,7 @@ function pixChart(imageLink, options) {
     gl.uniform2f(screenProgram.texture_resolution, width, height);
     gl.drawArrays(gl.POINTS, 0, numParticles);
 
-    nextAnimationFrame = requestAnimationFrame(animate);
+    nextAnimationFrame = setTimeout(() => requestAnimationFrame(animate), 1000);
     
     function animate() {
       gl.useProgram(screenProgram.program); 

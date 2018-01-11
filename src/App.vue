@@ -8,7 +8,7 @@
     </form>
     <div class='file-picker'>
       or
-        <input type="file" id="local-files-button" class="nodisplay" name="files[]" multiple="" accept=".jpg,.jpeg,.png,.apng,.tiff,.tif,.bmp" @change='onFilePickerChanged'>
+        <input type="file" id="local-files-button" class="nodisplay" name="files[]" multiple="" accept="image/*" @change='onFilePickerChanged'>
         <label class='browse-btn' for="local-files-button">select a local file</label> 
     </div>
   </div>

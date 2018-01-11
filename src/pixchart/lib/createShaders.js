@@ -48,13 +48,15 @@ var vertexShader = `
       2. * texture_pos.x - 1.,
       1. - 2.* texture_pos.y
     ); 
-    float sx = u_sizes[2]/u_sizes[0];
-    float sy = u_sizes[3]/u_sizes[1];
-    source.x *= u_sizes[0] * min(sx, sy) / u_sizes[2];
-    source.y *= u_sizes[1] * min(sx, sy) / u_sizes[3];
+
+    float factor = min(1.0, min(u_sizes[3]/u_sizes[1], u_sizes[2]/u_sizes[0]));
+
+    source.x *= factor * u_sizes[0] / u_sizes[2];
+    source.y *= factor * u_sizes[1] / u_sizes[3];
+
 
     vec2 target = vec2(
-      (2.* a_particle.x - 1.) * 0.9, 
+      (2. * a_particle.x - 1.) * 0.8, 
       (1.75* a_particle.y/u_max_y_value - .8)*0.9
     ); 
 
