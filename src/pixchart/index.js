@@ -6,8 +6,31 @@ var loadParticles = require('./lib/loadParticles');
 
 module.exports = pixChart;
 
+function urlImage(link) {
+  return {
+    name: link,
+    isUrl: true,
+    getUrl() {
+      return link
+    }
+  }
+}
+
+function fileImage(file) {
+  return {
+    name: file.name,
+    getUrl() {
+      return window.URL.createObjectURL(file);
+    }
+  }
+}
+
 function pixChart(imageLink, options) {
   // 'https://i.imgur.com/vOaDMFa.jpg'
+
+  // TODO: This needs to be more versatile
+  var imageObject = typeof imageLink === 'string' ? urlImage(imageLink) : fileImage(imageLink);
+
   options = options || {};
   var canvas = options.canvas;
   if (!canvas) {
@@ -26,7 +49,7 @@ function pixChart(imageLink, options) {
   }
 
   var progress = {
-    imageLink: imageLink,
+    imageObject: imageObject,
     total: 0,
     current: 0,
     step: 'image',
@@ -35,12 +58,12 @@ function pixChart(imageLink, options) {
   var scaleImage = options.scaleImage !== undefined ? options.scaleImage : true;
   var width, height;
 
-  var shaders = createShaders(window.devicePixelRatio);
+  var shaders = createShaders(1); // window.devicePixelRatio
   var screenProgram = glUtils.createProgram(gl, shaders.vertexShader, shaders.fragmentShader);
 
   window.addEventListener('resize', updateWidths, true);
 
-  loadImage(imageLink, scaleImage).then(image => {
+  loadImage(imageObject, scaleImage).then(image => {
       progress.total = image.width * image.height;
       progress.step = 'pixels';
       notifyProgress();

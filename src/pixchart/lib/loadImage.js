@@ -1,6 +1,6 @@
 module.exports = loadImage;
 
-function loadImage(url, scaleImage) {
+function loadImage(imageObject, scaleImage) {
   var resolveImage, rejectImage;
 
   var image = new Image();
@@ -8,7 +8,7 @@ function loadImage(url, scaleImage) {
 
   image.onload = imageLoaded;
   image.onerror = reportError;
-  image.src = url;
+  image.src = imageObject.getUrl();
 
   return new Promise((resolve, reject) => {
     resolveImage = resolve;

@@ -14,7 +14,8 @@ function initScene(canvas) {
   var state = {
     image: url,
     qs,
-    setImage
+    setImage,
+    setLocalImages
   }
 
   window.sceneState = state;
@@ -24,7 +25,13 @@ function initScene(canvas) {
       progressElement.innerText = 'Processed ' + format(progress.current) + ' pixels out of ' + format(progress.total);
     } else if (progress.step === 'done') {
       progressElement.style.display = 'none';
-      qs.set('link', progress.imageLink)
+      if (progress.imageObject.isUrl) {
+        // other objects cannot be shared
+        qs.set('link', progress.imageLink)
+      } else {
+        qs.set('link', '')
+      }
+      state.image = progress.imageObject.name;
     }
   }
 
@@ -35,12 +42,18 @@ function initScene(canvas) {
 
     currentPixChart = pixChart(url, {
       canvas,
-      scaleImage: false,
+      scaleImage: true,
       progress: showLoadingProgress
     });
+  }
+
+  function setLocalImages(files) {
+    setImage(files[0])
   }
 }
 
 function format(x) {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
+
+// TODO: color themes.   background: #343945;
