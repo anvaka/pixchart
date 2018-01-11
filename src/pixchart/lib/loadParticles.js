@@ -2,8 +2,11 @@ var chroma = require('chroma-js')
 
 module.exports = loadParticles;
 
-function loadParticles(image, framesCount, onProgress) {
+function loadParticles(image, options) {
+  if (!options) throw new Error('Options required');
+
   var actualResolve;
+  var {framesCount, onProgress} = options;
 
   var initIntervals = 0;
 
@@ -43,6 +46,8 @@ function loadParticles(image, framesCount, onProgress) {
   }
   
   function scheduleWork() {
+    if (options.isCancelled) return;
+
     initIntervals += 1;
     if (initIntervals % 10 === 0) {
       onProgress(idx/4);

@@ -1,4 +1,4 @@
-var eventify = require('ngraph.events');
+// var eventify = require('ngraph.events');
 var createShaders = require('./lib/createShaders');
 var glUtils = require('./lib/gl-utils.js');
 var loadImage = require('./lib/loadImage');
@@ -6,43 +6,59 @@ var loadParticles = require('./lib/loadParticles');
 
 module.exports = pixChart;
 
-function pixChart(imageLink, canvas) {
+function pixChart(imageLink, options) {
   // 'https://i.imgur.com/vOaDMFa.jpg'
-  var ctxOptions = {};
-  var gl = canvas.getContext('webgl', ctxOptions) || canvas.getContext('experimental-webgl', ctxOptions);
+  options = options || {};
+  var canvas = options.canvas;
+  if (!canvas) {
+    var canvas = document.createElement('canvas');
+  }
+  var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 
   var state = 1; // expand
   var framesCount = 90;
+  var nextAnimationFrame, pendingTimeout;
+  var disposed = false;
+  var particleLoaderSettings = {
+    framesCount,
+    isCancelled: false,
+    onProgress: reportImageStatsProgress
+  }
+
+  var progress = {
+    imageLink: imageLink,
+    total: 0,
+    current: 0,
+    step: 'image',
+  };
+
+  var scaleImage = options.scaleImage !== undefined ? options.scaleImage : true;
+  var width, height;
 
   var shaders = createShaders(window.devicePixelRatio);
   var screenProgram = glUtils.createProgram(gl, shaders.vertexShader, shaders.fragmentShader);
-  var scaleImage = true;
-  var width, height;
 
   window.addEventListener('resize', updateWidths, true);
-
-  var progress = {
-    total: 0,
-    current: 0,
-    step: 'image'
-  };
 
   loadImage(imageLink, scaleImage).then(image => {
       progress.total = image.width * image.height;
       progress.step = 'pixels';
-      api.fire('load-progress', progress);
+      notifyProgress();
 
-      return loadParticles(image, framesCount, reportImageStatsProgress)
+      return loadParticles(image, particleLoaderSettings)
         .then(stats => {
-        progress.step = 'done';
-        api.fire('load-progress', progress);
-        return {
-          texture: glUtils.createTexture(gl, image),
-          stats: stats,
-          width: image.width,
-          height: image.height
-        };
+          progress.step = 'done';
+          notifyProgress();
+
+          return {
+            texture: glUtils.createTexture(gl, image),
+            stats: stats,
+            width: image.width,
+            height: image.height
+          };
       })
+  }, (error) => {
+    console.log('error', error);
   }).then(start);
 
   var api = {
@@ -50,17 +66,28 @@ function pixChart(imageLink, canvas) {
     webglEnabled: !!gl
   };
 
-  eventify(api);
-
   return api;
 
   function reportImageStatsProgress(processedPixels) {
     progress.current = processedPixels;
-    api.fire('load-progress', progress);
+    notifyProgress();
+  }
+
+  function notifyProgress() {
+    if (options.progress) { 
+      options.progress(progress);
+     }
   }
 
   function dispose() {
     window.removeEventListener('resize', updateWidths, true);
+    cancelAnimationFrame(nextAnimationFrame);
+    clearTimeout(pendingTimeout);
+
+    particleLoaderSettings.isCancelled = true;
+    nextAnimationFrame = null;
+    pendingTimeout = null;
+    disposed = true;
   }
 
   function updateWidths() {
@@ -68,6 +95,8 @@ function pixChart(imageLink, canvas) {
   }
 
   function start(imgInfo) {
+    if (disposed) return;
+
     width = imgInfo.width, height = imgInfo.height;
     
     var frame = 0;
@@ -88,7 +117,7 @@ function pixChart(imageLink, canvas) {
     gl.uniform2f(screenProgram.texture_resolution, width, height);
     gl.drawArrays(gl.POINTS, 0, numParticles);
 
-    requestAnimationFrame(animate);
+    nextAnimationFrame = requestAnimationFrame(animate);
     
     function animate() {
       gl.useProgram(screenProgram.program); 
@@ -103,20 +132,24 @@ function pixChart(imageLink, canvas) {
       if (state === 1) {
         if (frame < framesCount) {
           frame += 1;
-          requestAnimationFrame(animate);
+          nextAnimationFrame = requestAnimationFrame(animate);
         } else {
           frame = framesCount;
           state = 2;
-          setTimeout(() => requestAnimationFrame(animate), 1000);
+          pendingTimeout = setTimeout(() => {
+            nextAnimationFrame = requestAnimationFrame(animate);
+          }, 1000);
         }
       } else {
         if (frame > 0 ) {
             frame -= 1;
-            requestAnimationFrame(animate);
+            nextAnimationFrame = requestAnimationFrame(animate);
         } else {
           state = 1;
           frame = 0;
-          setTimeout(() => requestAnimationFrame(animate), 1000);
+          pendingTimeout = setTimeout(() => {
+            nextAnimationFrame = requestAnimationFrame(animate)
+          }, 1000);
         }
       }
     }
