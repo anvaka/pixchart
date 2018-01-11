@@ -13,7 +13,7 @@ function loadParticles(image, framesCount, onProgress) {
   var width = cnv.width = image.width, height = cnv.height = image.height;
   var n = width * height;
 
-  var bucketsCount = width; // TODO: Customize?
+  var bucketsCount = n; // TODO: Customize?
 
   var maxYValue = 0;  
   
@@ -24,20 +24,22 @@ function loadParticles(image, framesCount, onProgress) {
   var idx = 0;
 
   // each pixel is mapped to height inside its bucket;
-  var particleInfo = new Float32Array(3 * n);
+  var particleInfo = new Float32Array(4 * n);
 
   // this is a temporary tracker of taken spots inside a bucket
-  var bucketColors = new Uint32Array(width);
+  var bucketColors = new Uint32Array(bucketsCount);
 
   console.timeEnd('init stats');
   
+  console.time('initParticles');
   scheduleWork();
   
   return new Promise((resolve) => { actualResolve = resolve; });
 
   // TODO: Should be customizable.
   function getValue(r, g, b) {
-    return chroma(r, g, b).get('hsl.l');
+    return b/255;
+    return chroma(r, g, b).get('lch.c')/80;
   }
   
   function scheduleWork() {
@@ -57,26 +59,33 @@ function loadParticles(image, framesCount, onProgress) {
       var v = getValue(r, g, b);
       // v ranges from 0 to 1.
       var bucketNumber = Math.round(v * bucketsCount);
-      if (bucketNumber === bucketsCount) bucketNumber -= 1;
+
+      if (bucketNumber === bucketsCount) {
+        // prevent overflow
+        bucketNumber -= 1;
+      }
+
       currentYValue = bucketColors[bucketNumber] += 1;
       // assign this pixel to this height in the bucket
       var pixelIndex = idx/4;
-      var bIndex = 3 * pixelIndex;
       var rnd = Math.random();// * Math.abs(0.5 -v);
-      particleInfo[bIndex + 0] = bucketNumber;
-      particleInfo[bIndex + 1] = currentYValue - 1;
-      particleInfo[bIndex + 2] = framesCount/2 + rnd * (framesCount/2);
+      particleInfo[idx + 0] = v;
+      particleInfo[idx + 1] = currentYValue - 1;
+      particleInfo[idx + 2] = framesCount/2 + rnd * (framesCount/2);
+      particleInfo[idx + 3] = pixelIndex;
 
       idx += 4;
       if (v === 0.) { 
-          particleInfo[bIndex] = -1;
+        // TODO: Proper ignore logic here.
+        particleInfo[idx] = -1;
       } else if (currentYValue > maxYValue) maxYValue = currentYValue;
-      if (performance.now() - start > 12) {
+      if (performance.now() - start > 42) {
         scheduleWork();
         return;
       }  
     }
     
+    console.timeEnd('initParticles');
     console.log('initialized in ' + initIntervals + ' intervals; Max Value:', maxYValue);
     
     actualResolve({

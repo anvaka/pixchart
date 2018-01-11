@@ -14,7 +14,7 @@ function pixChart(imageLink, canvas) {
   var state = 1; // expand
   var framesCount = 90;
 
-  var shaders = createShaders();
+  var shaders = createShaders(window.devicePixelRatio);
   var screenProgram = glUtils.createProgram(gl, shaders.vertexShader, shaders.fragmentShader);
   var scaleImage = true;
   var width, height;
@@ -54,8 +54,6 @@ function pixChart(imageLink, canvas) {
 
   return api;
 
-  
-
   function reportImageStatsProgress(processedPixels) {
     progress.current = processedPixels;
     api.fire('load-progress', progress);
@@ -75,16 +73,11 @@ function pixChart(imageLink, canvas) {
     var frame = 0;
     var numParticles = width * height; 
 
-    var particleIndices = new Float32Array(numParticles);
-    for (var i = 0; i < numParticles; i++) particleIndices[i] = i;
-    
-    var particleIndexBuffer = glUtils.createBuffer(gl, particleIndices);
     var particleInfoBuffer = glUtils.createBuffer(gl, imgInfo.stats.particleInfo);
   
     gl.useProgram(screenProgram.program);  
     
-    glUtils.bindAttribute(gl, particleInfoBuffer, screenProgram.a_particle, 3);  
-    glUtils.bindAttribute(gl, particleIndexBuffer, screenProgram.a_index, 1);
+    glUtils.bindAttribute(gl, particleInfoBuffer, screenProgram.a_particle, 4);  
 
     glUtils.bindTexture(gl, imgInfo.texture, 2);
     gl.uniform1f(screenProgram.u_frame, frame);
@@ -128,6 +121,4 @@ function pixChart(imageLink, canvas) {
       }
     }
   }
-
-
 }

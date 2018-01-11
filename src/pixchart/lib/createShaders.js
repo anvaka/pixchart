@@ -8,7 +8,7 @@ var fragmentShader = `
 
 module.exports = createShaders;
 
-function createShaders() {
+function createShaders(pointSize) {
 
 var vertexShader = `
   precision highp float;
@@ -20,10 +20,11 @@ var vertexShader = `
   uniform vec4 u_sizes;
   uniform float u_max_y_value;
 
-  // attribute vec2 a_pos;
-  attribute float a_index;
-  // [0] is x
-  attribute vec3 a_particle;
+  // [0] is x coordinate of a particle
+  // [1] is y
+  // [2] is particle lifespan
+  // [3] is particle index in the texture.
+  attribute vec4 a_particle;
 
   varying vec2 v_tex_pos;
   varying vec4 v_color;
@@ -37,10 +38,10 @@ var vertexShader = `
       return fract(sin(t) * (rand_constants.z + t));
   } 
   void main() { 
-    gl_PointSize = 2.; 
+    gl_PointSize = float(${pointSize}); 
     vec2 texture_pos = vec2(
-                mod(a_index, texture_resolution.x)/texture_resolution.x,
-                floor(a_index / texture_resolution.x)/(texture_resolution.y)
+                mod(a_particle[3], texture_resolution.x)/texture_resolution.x,
+                floor(a_particle[3] / texture_resolution.x)/(texture_resolution.y)
     );
     v_color = texture2D(u_screen, texture_pos);
     vec2 source = vec2(
@@ -53,7 +54,7 @@ var vertexShader = `
     source.y *= u_sizes[1] * min(sx, sy) / u_sizes[3];
 
     vec2 target = vec2(
-      (2.* (a_particle.x/texture_resolution.x) - 1.) * 0.9, 
+      (2.* a_particle.x - 1.) * 0.9, 
       (1.75* a_particle.y/u_max_y_value - .8)*0.9
     ); 
 
@@ -68,7 +69,7 @@ var vertexShader = `
     else t = 1.;
     float tmin = 1. - t;
     vec2 dest = tmin * source + t * target;
-  // vec2 dest = tmin * tmin * source + 2. * tmin * vec2(0.) * t + t * t * target;
+   //vec2 dest = tmin * tmin * source + 2. * tmin * vec2(0.) * t + t * t * target;
     //vec2 dest = tmin * tmin * tmin * source + 3. * tmin * tmin * vec2(0., 0.1) * t + 3. * tmin * t * t * target/2. + target * t * t * t; 
     gl_Position = vec4(dest, 0, 1);
   }`
