@@ -4,26 +4,10 @@ var glUtils = require('./lib/gl-utils.js');
 var loadImage = require('./lib/loadImage');
 var loadParticles = require('./lib/loadParticles');
 
+var ANIMATION_COLLAPSE = 1;
+var ANIMATION_EXPAND = 2;
+
 module.exports = pixChart;
-
-function urlImage(link) {
-  return {
-    name: link,
-    isUrl: true,
-    getUrl() {
-      return link
-    }
-  }
-}
-
-function fileImage(file) {
-  return {
-    name: file.name,
-    getUrl() {
-      return window.URL.createObjectURL(file);
-    }
-  }
-}
 
 function pixChart(imageLink, options) {
   // 'https://i.imgur.com/vOaDMFa.jpg'
@@ -41,13 +25,19 @@ function pixChart(imageLink, options) {
     throw new Error('WebGL is not available');
   }
 
-  var state = 1; // expand
-  var framesCount = 180;
+  var initialState = ANIMATION_COLLAPSE;
+  var state = initialState;
+
   var nextAnimationFrame, pendingTimeout;
+
   var disposed = false;
+  var framesCount = options.framesCount || 120;
+
+  var currentFrameNumber = state === 1 ? 0 : framesCount;
+
   var particleLoaderSettings = {
-    framesCount,
     isCancelled: false,
+    framesCount: framesCount,
     onProgress: reportImageStatsProgress
   }
 
@@ -65,38 +55,43 @@ function pixChart(imageLink, options) {
   var shaders = createShaders(window.devicePixelRatio);
   var screenProgram = glUtils.createProgram(gl, shaders.vertexShader, shaders.fragmentShader);
 
-  loadImage(imageObject, scaleImage).then(image => {
-      progress.total = image.width * image.height;
-      progress.step = 'pixels';
+  loadImage(imageObject, scaleImage)
+    .then(updateProgressAndLoadParticles)
+    .then(initWebGLPrimitives)
+    .then(startExpandCollapseCycle)
+    .catch(error => {
+      // TODO: this may not be necessary Image problem...
+      console.error('error', error);
+      progress.step = 'error'
       notifyProgress();
-
-      return loadParticles(image, particleLoaderSettings)
-        .then(stats => {
-          progress.step = 'done';
-          notifyProgress();
-
-          return {
-            texture: glUtils.createTexture(gl, image),
-            stats: stats,
-            width: image.width,
-            height: image.height
-          };
-      })
-  })
-  .then(start)
-  .catch(error => {
-    // TODO: this may not be necessary Image problem...
-    console.error('error', error);
-    progress.step = 'error'
-    notifyProgress();
-  })
+    });
 
   var api = {
     dispose,
-    webglEnabled: !!gl
+    imageLink,
+    restartCycle: startExpandCollapseCycle
   };
 
   return api;
+
+  function updateProgressAndLoadParticles(image) {
+    progress.total = image.width * image.height;
+    progress.step = 'pixels';
+    notifyProgress();
+
+    return loadParticles(image, particleLoaderSettings)
+      .then(stats => {
+        progress.step = 'done';
+        notifyProgress();
+
+        return {
+          texture: glUtils.createTexture(gl, image),
+          stats: stats,
+          width: image.width,
+          height: image.height
+        };
+    });
+  }
 
   function reportImageStatsProgress(processedPixels) {
     progress.current = processedPixels;
@@ -119,13 +114,10 @@ function pixChart(imageLink, options) {
     disposed = true;
   }
 
-  function start(imgInfo) {
+  function initWebGLPrimitives(imgInfo) {
     if (disposed) return;
 
     width = imgInfo.width, height = imgInfo.height;
-    
-    var frame = 0;
-    var numParticles = width * height; 
 
     var particleInfoBuffer = glUtils.createBuffer(gl, imgInfo.stats.particleInfo);
   
@@ -134,54 +126,86 @@ function pixChart(imageLink, options) {
     glUtils.bindAttribute(gl, particleInfoBuffer, screenProgram.a_particle, 4);  
 
     glUtils.bindTexture(gl, imgInfo.texture, 2);
-    gl.uniform1f(screenProgram.u_frame, frame);
+    gl.uniform1f(screenProgram.u_frame, currentFrameNumber);
     gl.uniform1f(screenProgram.u_max_y_value, imgInfo.stats.maxYValue);
     gl.uniform4f(screenProgram.u_sizes, width, height, window.innerWidth, window.innerHeight);
 
     gl.uniform1i(screenProgram.u_screen, 2);
     gl.uniform2f(screenProgram.texture_resolution, width, height);
-    gl.drawArrays(gl.POINTS, 0, numParticles);
+    gl.drawArrays(gl.POINTS, 0, width * height);  
+  }
 
+  function startExpandCollapseCycle() {
     nextAnimationFrame = setTimeout(() => requestAnimationFrame(animate), 1000);
+  }
     
-    function animate() {
-      gl.useProgram(screenProgram.program); 
-      if (requestSizeUpdate) {
-        requestSizeUpdate = false;
-        gl.uniform4f(screenProgram.u_sizes, width, height, window.innerWidth, window.innerHeight);
-      }
-
-      updateFrame();
-
-      gl.uniform1f(screenProgram.u_frame, frame);
-      gl.drawArrays(gl.POINTS, 0, numParticles);  
+  function animate() {
+    gl.useProgram(screenProgram.program); 
+    if (requestSizeUpdate) {
+      requestSizeUpdate = false;
+      gl.uniform4f(screenProgram.u_sizes, width, height, window.innerWidth, window.innerHeight);
     }
 
-    function updateFrame() {
-      if (state === 1) {
-        if (frame < framesCount) {
-          frame += 1;
+    updateFrameNumber();
+
+    gl.uniform1f(screenProgram.u_frame, currentFrameNumber);
+    gl.drawArrays(gl.POINTS, 0, width * height);  
+  }
+
+  function updateFrameNumber() {
+    if (state === 1) {
+      if (currentFrameNumber < framesCount) {
+        currentFrameNumber += 1;
+        nextAnimationFrame = requestAnimationFrame(animate);
+      } else {
+        state = 2;
+        completeState();
+      }
+    } else {
+        if (currentFrameNumber > 0 ) {
+          currentFrameNumber -= 1;
+          if (currentFrameNumber > 0) currentFrameNumber -= 1;
           nextAnimationFrame = requestAnimationFrame(animate);
         } else {
-          frame = framesCount;
-          state = 2;
-          pendingTimeout = setTimeout(() => {
-            nextAnimationFrame = requestAnimationFrame(animate);
-          }, 1000);
-        }
-      } else {
-        if (frame > 0 ) {
-            frame -= 1;
-            if (frame > 0) frame -= 2;
-            nextAnimationFrame = requestAnimationFrame(animate);
-        } else {
           state = 1;
-          frame = 0;
-          pendingTimeout = setTimeout(() => {
-            nextAnimationFrame = requestAnimationFrame(animate)
-          }, 1000);
+          completeState();
         }
       }
+    }
+
+    function completeState() {
+      currentFrameNumber = state === 2 ? framesCount : 0;
+      if (state === initialState) {
+        // make a pause, let the clients re-trigger.
+        if (options.cycleComplete) {
+          options.cycleComplete();
+        }
+      } else {
+        // drive it back to original state
+        pendingTimeout = setTimeout(() => {
+          nextAnimationFrame = requestAnimationFrame(animate);
+        }, 1000);
+      }
+    }
+}
+
+// allows to load images from a url
+function urlImage(link) {
+  return {
+    name: link,
+    isUrl: true,
+    getUrl() {
+      return link
+    }
+  }
+}
+
+// this loads images from a local file
+function fileImage(file) {
+  return {
+    name: file.name,
+    getUrl() {
+      return window.URL.createObjectURL(file);
     }
   }
 }

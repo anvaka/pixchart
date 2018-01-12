@@ -49,14 +49,14 @@ export default {
   },
   methods: {
     onSubmit() {
-      sceneState.setImage(this.scene.image);
+      sceneState.setImages([this.scene.image]);
     },
     onInputFocused(e) {
       e.target.select();
       this.inputSelected = true;
     },
     onFilePickerChanged(e) {
-      sceneState.setLocalImages(e.target.files);
+      sceneState.setImages(e.target.files);
     }
   }
 }

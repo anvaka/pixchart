@@ -9,14 +9,19 @@ function initScene(canvas) {
   var currentPixChart;
   var cleanErrorClass = false;
   var progressElement = document.getElementById('progress');
+  var queue = [];
+  var lastIndex = 0;
+  var pendingTimeout;
   var url = qs.get('link')
-  if (url) setImage(url);
+  if (url) {
+    queue = [url];
+    pendingTimeout = setTimeout(processNextInQueue, 0);
+  }
   
   var state = {
     image: url,
     qs,
-    setImage,
-    setLocalImages
+    setImages
   }
 
   window.sceneState = state;
@@ -29,14 +34,17 @@ function initScene(canvas) {
       if (progress.imageObject.isUrl) {
         // other objects cannot be shared
         qs.set('link', progress.imageObject.name)
+        state.image = progress.imageObject.name;
       } else {
         qs.set('link', '')
       }
-      state.image = progress.imageObject.name;
     } else if (progress.step === 'error') {
       progressElement.classList.add('error');
       cleanErrorClass = true;
       progressElement.innerHTML = 'Could not load image :(. <br /> Try uploading it to <a href="https://imgur.com" target="_blank">imgur.com</a>?'
+      if (queue.length > 1) {
+        setTimeout(processNextInQueue, 500);
+      }
     } 
 
     if (cleanErrorClass && progress.step !== 'error') {
@@ -46,20 +54,46 @@ function initScene(canvas) {
     }
   }
 
-  function setImage(url) {
-    if(currentPixChart) currentPixChart.dispose();
+  function setImage(imageLink) {
+    if (currentPixChart && imageLink === currentPixChart.imageLink) {
+      currentPixChart.restartCycle()
+      return;
+    }
+    if (currentPixChart) {
+      currentPixChart.dispose();
+    }
 
     progressElement.style.display = 'block';
 
-    currentPixChart = pixChart(url, {
+    currentPixChart = pixChart(imageLink, {
       canvas,
       scaleImage: true,
-      progress: showLoadingProgress
+      progress: showLoadingProgress,
+      cycleComplete: () => {
+        pendingTimeout = setTimeout(processNextInQueue, 1000);
+      }
     });
   }
 
-  function setLocalImages(files) {
-    if (files.length > 0) setImage(files[0])
+  function setImages(files) {
+    if (files.length > 0) {
+      // TODO: Queue is not visible anywhere. Might need to improve UX around this area
+      queue = files;
+      processNextInQueue();
+    }
+  }
+
+  function processNextInQueue() {
+    if (pendingTimeout) {
+      clearTimeout(pendingTimeout);
+      pendingTimeout = 0;
+    }
+
+    var img = queue[lastIndex]
+    lastIndex += 1;
+    if (lastIndex >= queue.length) lastIndex = 0;
+
+    setImage(img)
   }
 }
 
