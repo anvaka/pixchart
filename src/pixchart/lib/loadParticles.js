@@ -77,7 +77,7 @@ function loadParticles(image, options) {
       var rnd = Math.random();// * Math.abs(0.5 -v);
       particleInfo[idx + 0] = v;
       particleInfo[idx + 1] = currentYValue - 1;
-      particleInfo[idx + 2] = framesCount - rnd * framesCount*0.3;
+      particleInfo[idx + 2] = framesCount - rnd * framesCount*0.75;
       particleInfo[idx + 3] = pixelIndex;
 
       idx += 4;

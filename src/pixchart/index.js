@@ -42,7 +42,7 @@ function pixChart(imageLink, options) {
   }
 
   var state = 1; // expand
-  var framesCount = 120;
+  var framesCount = 180;
   var nextAnimationFrame, pendingTimeout;
   var disposed = false;
   var particleLoaderSettings = {
@@ -62,10 +62,8 @@ function pixChart(imageLink, options) {
   var width, height;
   var requestSizeUpdate = false;
 
-  var shaders = createShaders(1); // window.devicePixelRatio
+  var shaders = createShaders(window.devicePixelRatio);
   var screenProgram = glUtils.createProgram(gl, shaders.vertexShader, shaders.fragmentShader);
-
-  window.addEventListener('resize', updateWidths, true);
 
   loadImage(imageObject, scaleImage).then(image => {
       progress.total = image.width * image.height;
@@ -112,7 +110,6 @@ function pixChart(imageLink, options) {
   }
 
   function dispose() {
-    window.removeEventListener('resize', updateWidths, true);
     cancelAnimationFrame(nextAnimationFrame);
     clearTimeout(pendingTimeout);
 
@@ -120,10 +117,6 @@ function pixChart(imageLink, options) {
     nextAnimationFrame = null;
     pendingTimeout = null;
     disposed = true;
-  }
-
-  function updateWidths() {
-    requestSizeUpdate = true;
   }
 
   function start(imgInfo) {
@@ -179,6 +172,7 @@ function pixChart(imageLink, options) {
       } else {
         if (frame > 0 ) {
             frame -= 1;
+            if (frame > 0) frame -= 2;
             nextAnimationFrame = requestAnimationFrame(animate);
         } else {
           state = 1;

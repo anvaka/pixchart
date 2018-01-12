@@ -56,7 +56,7 @@ var vertexShader = `
 
 
     vec2 target = vec2(
-      (2. * a_particle.x  - 1.) * factor * u_sizes[0]/u_sizes[2], 
+      (2. * a_particle.x  - 1.) * 0.9, // * factor * u_sizes[0]/u_sizes[2], 
       (1.75 * a_particle.y/u_max_y_value - .8) * 0.9
     ); 
 
