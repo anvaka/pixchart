@@ -7,6 +7,7 @@ module.exports = initScene;
 
 function initScene(canvas) {
   var currentPixChart;
+  var cleanErrorClass = false;
   var progressElement = document.getElementById('progress');
   var url = qs.get('link')
   if (url) setImage(url);
@@ -32,6 +33,16 @@ function initScene(canvas) {
         qs.set('link', '')
       }
       state.image = progress.imageObject.name;
+    } else if (progress.step === 'error') {
+      progressElement.classList.add('error');
+      cleanErrorClass = true;
+      progressElement.innerHTML = 'Could not load image :(. <br /> Try uploading it to <a href="https://imgur.com" target="_blank">imgur.com</a>?'
+    } 
+
+    if (cleanErrorClass && progress.step !== 'error') {
+      // Just so that we are not doing this too often
+      cleanErrorClass = false;
+      progressElement.classList.remove('error');
     }
   }
 
@@ -48,7 +59,7 @@ function initScene(canvas) {
   }
 
   function setLocalImages(files) {
-    setImage(files[0])
+    if (files.length > 0) setImage(files[0])
   }
 }
 

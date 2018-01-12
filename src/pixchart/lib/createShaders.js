@@ -56,11 +56,12 @@ var vertexShader = `
 
 
     vec2 target = vec2(
-      (2. * a_particle.x - 1.) * 0.8, 
-      (1.75* a_particle.y/u_max_y_value - .8)*0.9
+      (2. * a_particle.x  - 1.) * factor * u_sizes[0]/u_sizes[2], 
+      (1.75 * a_particle.y/u_max_y_value - .8) * 0.9
     ); 
 
     if (a_particle.x < 0.) {
+      // these particles are filtered out.
       target.x = cos(atan(source.y, source.x)) * 2.;
       target.y = sin(atan(source.y, source.x)) * 2.;
     }
@@ -71,8 +72,8 @@ var vertexShader = `
     else t = 1.;
     float tmin = 1. - t;
     vec2 dest = tmin * source + t * target;
-   //vec2 dest = tmin * tmin * source + 2. * tmin * vec2(0.) * t + t * t * target;
-    //vec2 dest = tmin * tmin * tmin * source + 3. * tmin * tmin * vec2(0., 0.1) * t + 3. * tmin * t * t * target/2. + target * t * t * t; 
+   // vec2 dest = tmin * tmin * source + 2. * tmin * vec2(0.) * t + t * t * target;
+    // vec2 dest = tmin * tmin * tmin * source + 3. * tmin * tmin * vec2(0., 0.1) * t + 3. * tmin * t * t * target/2. + target * t * t * t; 
     gl_Position = vec4(dest, 0, 1);
   }`
 

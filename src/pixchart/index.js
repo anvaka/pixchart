@@ -34,9 +34,12 @@ function pixChart(imageLink, options) {
   options = options || {};
   var canvas = options.canvas;
   if (!canvas) {
-    var canvas = document.createElement('canvas');
+    throw new Error('Canvas is required');
   }
   var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  if (!gl) {
+    throw new Error('WebGL is not available');
+  }
 
   var state = 1; // expand
   var framesCount = 120;
@@ -57,6 +60,7 @@ function pixChart(imageLink, options) {
 
   var scaleImage = options.scaleImage !== undefined ? options.scaleImage : true;
   var width, height;
+  var requestSizeUpdate = false;
 
   var shaders = createShaders(1); // window.devicePixelRatio
   var screenProgram = glUtils.createProgram(gl, shaders.vertexShader, shaders.fragmentShader);
@@ -80,9 +84,14 @@ function pixChart(imageLink, options) {
             height: image.height
           };
       })
-  }, (error) => {
-    console.log('error', error);
-  }).then(start);
+  })
+  .then(start)
+  .catch(error => {
+    // TODO: this may not be necessary Image problem...
+    console.error('error', error);
+    progress.step = 'error'
+    notifyProgress();
+  })
 
   var api = {
     dispose,
@@ -114,7 +123,7 @@ function pixChart(imageLink, options) {
   }
 
   function updateWidths() {
-    gl.uniform4f(screenProgram.u_sizes, width, height, window.innerWidth, window.innerHeight);
+    requestSizeUpdate = true;
   }
 
   function start(imgInfo) {
@@ -144,6 +153,10 @@ function pixChart(imageLink, options) {
     
     function animate() {
       gl.useProgram(screenProgram.program); 
+      if (requestSizeUpdate) {
+        requestSizeUpdate = false;
+        gl.uniform4f(screenProgram.u_sizes, width, height, window.innerWidth, window.innerHeight);
+      }
 
       updateFrame();
 

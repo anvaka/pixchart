@@ -30,15 +30,23 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
 #progress {
   position: absolute;
-  top: 20px;
+  top: 120px;
   left: 0;
   width: 100%;
   text-align: center;
-  font-size: 48;
+  font-size: 24px;
   color: #eee;
   display: none;
+}
+#progress.error {
+  color: #6fbf0d;
+}
+#progress.error a {
+  color: white;
+  border-bottom: 1px dashed;
 }
 * {
   box-sizing: border-box;
