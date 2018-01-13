@@ -17,7 +17,7 @@
     </form>
     <div class='file-picker'>
       or
-        <input type="file" id="local-files-button" class="nodisplay" name="files[]" multiple="" accept="image/*" @change='onFilePickerChanged'>
+        <input ref='localFile' type="file" id="local-files-button" class="nodisplay" name="files[]" multiple="" accept="image/*" @change='onFilePickerChanged'>
         <label class='browse-btn' for="local-files-button">select a local file</label> 
     </div>
   </div>
@@ -49,6 +49,7 @@ export default {
   },
   methods: {
     onSubmit() {
+      this.$refs.localFile.files = null;
       sceneState.setImages([this.scene.image]);
     },
     onInputFocused(e) {
