@@ -60,8 +60,10 @@ function loadParticles(image, options) {
   function processPixels() {
     var start = performance.now(); 
     var currentYValue;
-    while (idx < 4*n) { 
-      var r = pixels[idx + 0], g = pixels[idx + 1], b = pixels[idx + 2];
+    var pixelsCount = 4 * n;
+    while (idx < pixelsCount) { 
+      var invIndex = pixelsCount - idx - 4;
+      var r = pixels[invIndex + 0], g = pixels[invIndex + 1], b = pixels[invIndex + 2];
       var v = getValue(r, g, b);
       // v ranges from 0 to 1.
       var bucketNumber = Math.round(v * bucketsCount);
@@ -73,19 +75,20 @@ function loadParticles(image, options) {
 
       currentYValue = bucketColors[bucketNumber] += 1;
       // assign this pixel to this height in the bucket
-      var pixelIndex = idx/4;
       var rnd = Math.random();// * Math.abs(0.5 -v);
       particleInfo[idx + 0] = v;
       particleInfo[idx + 1] = currentYValue - 1;
       particleInfo[idx + 2] = framesCount - rnd * framesCount*0.75;
-      particleInfo[idx + 3] = pixelIndex;
+      particleInfo[idx + 3] = invIndex/4;
+
+      // if (v > 0.95) { 
+      //   // TODO: Proper ignore logic here.
+      //   particleInfo[idx] = -1;
+      // } else  
+      if (currentYValue > maxYValue) maxYValue = currentYValue;
 
       idx += 4;
-      if (v === 0.) { 
-        // TODO: Proper ignore logic here.
-        particleInfo[idx] = -1;
-      } else if (currentYValue > maxYValue) maxYValue = currentYValue;
-      if (performance.now() - start > 42) {
+      if (performance.now() - start > 12) {
         scheduleWork();
         return;
       }  

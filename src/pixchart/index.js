@@ -124,12 +124,13 @@ function pixChart(imageLink, options) {
   
     gl.useProgram(screenProgram.program);  
     
+    // gl.enable(gl.BLEND);
+    // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     glUtils.bindAttribute(gl, particleInfoBuffer, screenProgram.a_particle, 4);  
 
     glUtils.bindTexture(gl, imgInfo.texture, 2);
     gl.uniform1f(screenProgram.u_frame, currentFrameNumber);
     gl.uniform1f(screenProgram.u_max_y_value, imgInfo.stats.maxYValue);
-    gl.uniform1f(screenProgram.u_alpha, 0.0);
     gl.uniform4f(screenProgram.u_sizes, width, height, window.innerWidth, window.innerHeight);
 
     gl.uniform1i(screenProgram.u_screen, 2);
@@ -166,8 +167,12 @@ function pixChart(imageLink, options) {
 
   function startExpandCollapseCycle() {
     if (disposed) return;
-    if (nextAnimationFrame) return; // already scheduled.
-    nextAnimationFrame = setTimeout(() => requestAnimationFrame(animate), 1000);
+    if (nextAnimationFrame || pendingTimeout) return; // already scheduled.
+
+    pendingTimeout = setTimeout(() => {
+      pendingTimeout = 0;
+      nextAnimationFrame = requestAnimationFrame(animate)
+    }, 1000);
   }
     
   function animate() {
@@ -216,6 +221,7 @@ function pixChart(imageLink, options) {
       } else {
         // drive it back to original state
         pendingTimeout = setTimeout(() => {
+          pendingTimeout = 0;
           nextAnimationFrame = requestAnimationFrame(animate);
         }, 1000);
       }

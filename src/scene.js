@@ -43,7 +43,7 @@ function initScene(canvas) {
       cleanErrorClass = true;
       progressElement.innerHTML = 'Could not load image :(. <br /> Try uploading it to <a href="https://imgur.com" target="_blank">imgur.com</a>?'
       if (queue.length > 1) {
-        setTimeout(processNextInQueue, 500);
+        pendingTimeout = setTimeout(processNextInQueue, 500);
       }
     } 
 
@@ -59,6 +59,7 @@ function initScene(canvas) {
       currentPixChart.restartCycle()
       return;
     }
+
     if (currentPixChart) {
       currentPixChart.dispose();
     }

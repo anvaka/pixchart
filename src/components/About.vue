@@ -4,11 +4,11 @@
     <div class='content'>
       <h3>Pixel Chart <a class='close bold' href='#' @click.prevent='close'>close</a></h3>
       <p>
-        This website allows you to take any picture and split it thousands particles.
+        This website allows you to take any picture and split it into thousands particles.
         The particles are arranged according to color intensities into a histogram.
       </p>
       <p>
-        The website was created in response to popular demand in <a href='https://www.reddit.com/r/dataisbeautiful/comments/7ol3gy/gaussian_distribution_oc/'>this reddit post.</a>
+        The website was created in response to <a href='https://www.reddit.com/r/dataisbeautiful/comments/7ol3gy/gaussian_distribution_oc/'>this reddit post.</a>
         Thank you for the inspiration!
       </p>
       <ul>

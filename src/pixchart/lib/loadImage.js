@@ -27,12 +27,25 @@ function loadImage(imageObject, scaleImage) {
     // todo: remove dependency on window?
     var sx = window.innerWidth/image.width;
     var sy = window.innerHeight/image.height;
+    if (window.innerWidth < 400 || window.innerHeight < 400 && window.devicePixelRatio > 1) {
+      sx *= window.devicePixelRatio;
+      sy *= window.devicePixelRatio;
+    }
     if (sx < sy) {
       image.width *= Math.min(sx, 2);
       image.height *= Math.min(sx, 2);
     } else {
       image.width *= Math.min(sy, 2);
       image.height *= Math.min(sy, 2);
+    }
+
+    var maxPixels = 500000;
+    var ar = image.width/image.height;
+    var h0 = Math.sqrt(maxPixels * ar);
+    var w0 = maxPixels / h0;
+    if (h0 < image.height || w0 < image.width) {
+      image.width = h0;
+      image.height = w0;
     }
   }
 }
