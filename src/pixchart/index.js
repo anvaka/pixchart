@@ -133,7 +133,7 @@ function pixChart(imageLink, options) {
     gl.uniform1f(screenProgram.u_max_y_value, imgInfo.stats.maxYValue);
     gl.uniform4f(screenProgram.u_sizes, width, height, window.innerWidth, window.innerHeight);
 
-    gl.uniform1i(screenProgram.u_screen, 2);
+    gl.uniform1i(screenProgram.u_image, 2);
     gl.uniform2f(screenProgram.texture_resolution, width, height);
     gl.drawArrays(gl.POINTS, 0, width * height);  
   }

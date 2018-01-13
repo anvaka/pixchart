@@ -12,7 +12,7 @@ function createShaders(pointSize) {
 
 var vertexShader = `
   precision highp float;
-  uniform sampler2D u_screen;
+  uniform sampler2D u_image;
 
   uniform vec2 texture_resolution;
   uniform float u_frame;
@@ -22,7 +22,7 @@ var vertexShader = `
   uniform vec4 u_sizes;
 
   // [0] is x coordinate of a particle
-  // [1] is y
+  // [1] is y coordinate of a particle
   // [2] is particle lifespan
   // [3] is particle index in the texture.
   attribute vec4 a_particle;
@@ -44,7 +44,7 @@ var vertexShader = `
                 mod(a_particle[3], texture_resolution.x)/texture_resolution.x,
                 floor(a_particle[3] / texture_resolution.x)/(texture_resolution.y)
     );
-    v_color = texture2D(u_screen, texture_pos);
+    v_color = texture2D(u_image, texture_pos);
 
     vec2 source = vec2(
       2. * texture_pos.x - 1.,
@@ -75,11 +75,11 @@ var vertexShader = `
 //v_color = vec4(1.0, 0., 0., 1.);
     }
 
-    gl_PointSize = max(1., ceil(factor)); float(${pointSize}); 
+    gl_PointSize = max(1., ceil(factor)); // float(${pointSize}); 
     float tmin = 1. - t;
     vec2 dest = tmin * source + t * target;
    // vec2 dest = tmin * tmin * source + 2. * tmin * vec2(0.) * t + t * t * target;
-    // vec2 dest = tmin * tmin * tmin * source + 3. * tmin * tmin * vec2(0., 0.1) * t + 3. * tmin * t * t * target/2. + target * t * t * t; 
+    //vec2 dest = tmin * tmin * tmin * source + 3. * tmin * tmin * vec2(0., 0.1) * t + 3. * tmin * t * t * target/2. + target * t * t * t; 
     gl_Position = vec4(dest, 0, 1);
   }`
 
