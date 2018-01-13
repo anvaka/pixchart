@@ -77,8 +77,10 @@ function initScene(canvas) {
 
   function setImages(files) {
     if (files.length > 0) {
-      // TODO: Queue is not visible anywhere. Might need to improve UX around this area
+      // TODO: Queued images are not visible anywhere.
+      //  Might need to improve UX around this area
       queue = files;
+      lastIndex = 0;
       processNextInQueue();
     }
   }

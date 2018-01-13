@@ -33,7 +33,7 @@ function pixChart(imageLink, options) {
   var disposed = false;
   var framesCount = options.framesCount || 120;
 
-  var currentFrameNumber = state === 1 ? 0 : framesCount;
+  var currentFrameNumber = state === ANIMATION_COLLAPSE ? 0 : framesCount;
 
   var particleLoaderSettings = {
     isCancelled: false,
@@ -52,12 +52,13 @@ function pixChart(imageLink, options) {
   var width, height;
   var requestSizeUpdate = false;
 
-  var shaders = createShaders(window.devicePixelRatio);
+  var shaders = createShaders(2);//window.devicePixelRatio);
   var screenProgram = glUtils.createProgram(gl, shaders.vertexShader, shaders.fragmentShader);
 
   loadImage(imageObject, scaleImage)
     .then(updateProgressAndLoadParticles)
     .then(initWebGLPrimitives)
+    // .then(fadeIn)
     .then(startExpandCollapseCycle)
     .catch(error => {
       // TODO: this may not be necessary Image problem...
@@ -109,8 +110,8 @@ function pixChart(imageLink, options) {
     clearTimeout(pendingTimeout);
 
     particleLoaderSettings.isCancelled = true;
-    nextAnimationFrame = null;
-    pendingTimeout = null;
+    nextAnimationFrame = 0;
+    pendingTimeout = 0;
     disposed = true;
   }
 
@@ -128,6 +129,7 @@ function pixChart(imageLink, options) {
     glUtils.bindTexture(gl, imgInfo.texture, 2);
     gl.uniform1f(screenProgram.u_frame, currentFrameNumber);
     gl.uniform1f(screenProgram.u_max_y_value, imgInfo.stats.maxYValue);
+    gl.uniform1f(screenProgram.u_alpha, 0.0);
     gl.uniform4f(screenProgram.u_sizes, width, height, window.innerWidth, window.innerHeight);
 
     gl.uniform1i(screenProgram.u_screen, 2);
@@ -135,11 +137,42 @@ function pixChart(imageLink, options) {
     gl.drawArrays(gl.POINTS, 0, width * height);  
   }
 
+  function fadeIn() {
+    var done;
+    var currentFrame = 0;
+    var fadeInLength = 33;
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+    return new Promise(resolve => {
+       done = resolve;
+       nextAnimationFrame = requestAnimationFrame(fadeInFrame);
+    });
+
+    function fadeInFrame() {
+      gl.useProgram(screenProgram.program); 
+      currentFrame += 1;
+      if (currentFrame < fadeInLength) nextAnimationFrame = requestAnimationFrame(fadeInFrame)
+      else {
+        gl.disable(gl.BLEND);
+        done();
+        return;
+      }
+
+      gl.uniform1f(screenProgram.u_alpha, currentFrame/fadeInLength);
+      gl.drawArrays(gl.POINTS, 0, width * height);  
+    }
+  }
+
   function startExpandCollapseCycle() {
+    if (disposed) return;
+    if (nextAnimationFrame) return; // already scheduled.
     nextAnimationFrame = setTimeout(() => requestAnimationFrame(animate), 1000);
   }
     
   function animate() {
+    nextAnimationFrame = 0;
+
     gl.useProgram(screenProgram.program); 
     if (requestSizeUpdate) {
       requestSizeUpdate = false;
@@ -153,7 +186,7 @@ function pixChart(imageLink, options) {
   }
 
   function updateFrameNumber() {
-    if (state === 1) {
+    if (state === ANIMATION_COLLAPSE) {
       if (currentFrameNumber < framesCount) {
         currentFrameNumber += 1;
         nextAnimationFrame = requestAnimationFrame(animate);
