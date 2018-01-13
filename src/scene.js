@@ -13,18 +13,38 @@ function initScene(canvas) {
   var lastIndex = 0;
   var pendingTimeout;
   var url = qs.get('link')
+
   if (url) {
     queue = [url];
     pendingTimeout = setTimeout(processNextInQueue, 0);
   }
   
+  window.addEventListener('resize', onWindowResize);
+
   var state = {
     image: url,
     qs,
-    setImages
+    setImages,
+    dispose
   }
 
   window.sceneState = state;
+
+  function dispose() {
+    if (pendingTimeout) {
+      clearTimeout(pendingTimeout);
+      pendingTimeout = 0;
+    }
+    window.removeEventListener('resize', onWindowResize);
+    currentPixChart.dispose();
+    currentPixChart = null;
+  }
+
+  function onWindowResize() {
+    if (currentPixChart) {
+      currentPixChart.setSceneSize(window.innerWidth, window.innerHeight);
+    }
+  }
 
   function showLoadingProgress(progress) {
     if (progress.step === 'pixels') {

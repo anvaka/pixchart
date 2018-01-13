@@ -14,7 +14,7 @@ require.ensure('@/mainVue.js', () => {
 function initPixChart(canvas) {
   canvas.width = window.innerWidth;
   canvas.height =  window.innerHeight;
-  var ctxOptions = {};
+  var ctxOptions = {antialias: false};
 
   var gl = canvas.getContext('webgl', ctxOptions) ||
           canvas.getContext('experimental-webgl', ctxOptions);

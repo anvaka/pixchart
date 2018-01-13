@@ -8,16 +8,14 @@ var fragmentShader = `
 
 module.exports = createShaders;
 
-function createShaders(pointSize) {
+function createShaders() {
 
 var vertexShader = `
   precision highp float;
   uniform sampler2D u_image;
 
-  uniform vec2 texture_resolution;
   uniform float u_frame;
   uniform float u_max_y_value;
-
   uniform vec2 mouse_pos;
   uniform vec4 u_sizes;
 
@@ -41,21 +39,16 @@ var vertexShader = `
   } 
   void main() { 
     vec2 texture_pos = vec2(
-                mod(a_particle[3], texture_resolution.x)/texture_resolution.x,
-                floor(a_particle[3] / texture_resolution.x)/(texture_resolution.y)
+                mod(a_particle[3], u_sizes.x)/u_sizes.x,
+                floor(a_particle[3] / u_sizes.x)/(u_sizes.y)
     );
     v_color = texture2D(u_image, texture_pos);
 
+    float factor =  min(u_sizes[3]/u_sizes[1], u_sizes[2]/u_sizes[0]);
     vec2 source = vec2(
       2. * texture_pos.x - 1.,
       1. - 2.* texture_pos.y
-    ); 
-
-    // we don't want to make small images larger. That's why we pick minimum of 1.
-    // float factor = min(1.0, min(u_sizes[3]/u_sizes[1], u_sizes[2]/u_sizes[0]));
-    float factor =  min(u_sizes[3]/u_sizes[1], u_sizes[2]/u_sizes[0]);
-
-    source *= factor * u_sizes.xy/u_sizes.zw;
+    ) * factor * u_sizes.xy/u_sizes.zw;
 
     vec2 target = vec2(
       (2. * a_particle.x  - 1.) * 0.9,
@@ -72,10 +65,10 @@ var vertexShader = `
       target.x = source.x; //cos(atan(source.y, source.x)) * 2.;
       target.y = source.y; //sin(atan(source.y, source.x)) * 2.;
       v_color.a = 0.; //mix(0.1, 0., t);
-//v_color = vec4(1.0, 0., 0., 1.);
+      //v_color = vec4(1.0, 0., 0., 1.);
     }
 
-    gl_PointSize = max(1., ceil(factor)); // float(${pointSize}); 
+    gl_PointSize = max(1., ceil(factor));
     float tmin = 1. - t;
     vec2 dest = tmin * source + t * target;
    // vec2 dest = tmin * tmin * source + 2. * tmin * vec2(0.) * t + t * t * target;

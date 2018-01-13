@@ -39,6 +39,7 @@ export default {
   components: {
     About
   },
+
   data() {
     return {
       webGLEnabled: window.webGLEnabled,
@@ -47,6 +48,7 @@ export default {
       aboutVisible: false
     }
   },
+
   methods: {
     onSubmit() {
       sceneState.setImages([this.scene.image]);

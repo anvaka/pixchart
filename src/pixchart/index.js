@@ -49,10 +49,16 @@ function pixChart(imageLink, options) {
   };
 
   var scaleImage = options.scaleImage !== undefined ? options.scaleImage : true;
-  var width, height;
   var requestSizeUpdate = false;
 
-  var shaders = createShaders(2);//window.devicePixelRatio);
+  // Image size can be different than scene size (e.g. image is smaller than screen)
+  // Thus, we need to track them both.
+  var imageWidth, imageHeight;
+
+  var sceneWidth = canvas.clientWidth;
+  var sceneHeight = canvas.clientWidth;
+
+  var shaders = createShaders();
   var screenProgram = glUtils.createProgram(gl, shaders.vertexShader, shaders.fragmentShader);
 
   loadImage(imageObject, scaleImage)
@@ -70,7 +76,8 @@ function pixChart(imageLink, options) {
   var api = {
     dispose,
     imageLink,
-    restartCycle: startExpandCollapseCycle
+    restartCycle: startExpandCollapseCycle,
+    setSceneSize: setSceneSize
   };
 
   return api;
@@ -105,6 +112,20 @@ function pixChart(imageLink, options) {
      }
   }
 
+  function setSceneSize(width, height) {
+    canvas.width = width;
+    canvas.height = height;
+    sceneWidth = width;
+    sceneHeight = height;
+    requestAnimationFrame(refreshSize);
+  }
+
+  function refreshSize() {
+    requestSizeUpdate = true;
+    gl.viewport(0, 0, sceneWidth, sceneHeight);
+    drawCurrentFrame();
+  }
+
   function dispose() {
     cancelAnimationFrame(nextAnimationFrame);
     clearTimeout(pendingTimeout);
@@ -118,25 +139,41 @@ function pixChart(imageLink, options) {
   function initWebGLPrimitives(imgInfo) {
     if (disposed) return;
 
-    width = imgInfo.width, height = imgInfo.height;
+    imageWidth = imgInfo.width, imageHeight = imgInfo.height;
 
     var particleInfoBuffer = glUtils.createBuffer(gl, imgInfo.stats.particleInfo);
   
     gl.useProgram(screenProgram.program);  
     
-    // gl.enable(gl.BLEND);
-    // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     glUtils.bindAttribute(gl, particleInfoBuffer, screenProgram.a_particle, 4);  
-
     glUtils.bindTexture(gl, imgInfo.texture, 2);
+
     gl.uniform1f(screenProgram.u_frame, currentFrameNumber);
     gl.uniform1f(screenProgram.u_max_y_value, imgInfo.stats.maxYValue);
-    gl.uniform4f(screenProgram.u_sizes, width, height, window.innerWidth, window.innerHeight);
+    gl.uniform4f(screenProgram.u_sizes, imageWidth, imageHeight, sceneWidth, sceneHeight);
 
     gl.uniform1i(screenProgram.u_image, 2);
-    gl.uniform2f(screenProgram.texture_resolution, width, height);
-    gl.drawArrays(gl.POINTS, 0, width * height);  
+    gl.drawArrays(gl.POINTS, 0, imageWidth * imageHeight);  
   }
+
+  function animate() {
+    nextAnimationFrame = 0;
+
+    drawCurrentFrame();
+    scheduleNextFrame();
+  }
+
+  function drawCurrentFrame() {
+    gl.useProgram(screenProgram.program); 
+    if (requestSizeUpdate) {
+      requestSizeUpdate = false;
+      gl.uniform4f(screenProgram.u_sizes, imageWidth, imageHeight, sceneWidth, sceneHeight);
+    }
+
+    gl.uniform1f(screenProgram.u_frame, currentFrameNumber);
+    gl.drawArrays(gl.POINTS, 0, imageWidth * imageHeight);  
+  }
+
 
   function fadeIn() {
     var done;
@@ -161,11 +198,16 @@ function pixChart(imageLink, options) {
       }
 
       gl.uniform1f(screenProgram.u_alpha, currentFrame/fadeInLength);
-      gl.drawArrays(gl.POINTS, 0, width * height);  
+      gl.drawArrays(gl.POINTS, 0, imageWidth * imageHeight);  
     }
   }
 
   function startExpandCollapseCycle() {
+    // One cycle consists of collapsing image, and then expanding it.
+    // After cycle is done, options.cycleComplete() callback is executed.
+
+    // Note: we don't want to start animation immediately, so that users
+    // can see the scene in its expanded or collapsed state.
     if (disposed) return;
     if (nextAnimationFrame || pendingTimeout) return; // already scheduled.
 
@@ -175,28 +217,16 @@ function pixChart(imageLink, options) {
     }, 1000);
   }
     
-  function animate() {
-    nextAnimationFrame = 0;
-
-    gl.useProgram(screenProgram.program); 
-    if (requestSizeUpdate) {
-      requestSizeUpdate = false;
-      gl.uniform4f(screenProgram.u_sizes, width, height, window.innerWidth, window.innerHeight);
-    }
-
-    updateFrameNumber();
-
-    gl.uniform1f(screenProgram.u_frame, currentFrameNumber);
-    gl.drawArrays(gl.POINTS, 0, width * height);  
-  }
-
-  function updateFrameNumber() {
+  function scheduleNextFrame() {
+    // We want to pause when collapse or expand phase has finished.
+    // We also want the expand phase to be a tiny bit faster than
+    // collapse phase.
     if (state === ANIMATION_COLLAPSE) {
       if (currentFrameNumber < framesCount) {
         currentFrameNumber += 1;
         nextAnimationFrame = requestAnimationFrame(animate);
       } else {
-        state = 2;
+        state = ANIMATION_EXPAND;
         completeState();
       }
     } else {
@@ -205,7 +235,7 @@ function pixChart(imageLink, options) {
           if (currentFrameNumber > 0) currentFrameNumber -= 1;
           nextAnimationFrame = requestAnimationFrame(animate);
         } else {
-          state = 1;
+          state = ANIMATION_COLLAPSE;
           completeState();
         }
       }
