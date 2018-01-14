@@ -24,7 +24,9 @@ function initScene(canvas) {
 
   var state = {
     image: url,
-    sidebarOpen: true,
+    // We don't want to overwhelm people with options
+    // when they are browsing from mobile.
+    sidebarOpen: !config.isSmallScreen(),
     qs,
     updateSize,
     setImages,
@@ -45,8 +47,9 @@ function initScene(canvas) {
 
   function updateSize() {
     if (currentPixChart) {
-      var sideBarWidth = (!state.sidebarOpen || config.isSmallScreen ()) ? 0: config.sidebarWidth;
-      currentPixChart.setSceneSize(window.innerWidth - sideBarWidth, window.innerHeight);
+      var sideBarWidthOffset = (!state.sidebarOpen || config.isSmallScreen ()) ? 0: config.sidebarWidth;
+      var sideBarHeightOffset = config.isSmallScreen() ? config.sidebarHeight : 0;
+      currentPixChart.setSceneSize(window.innerWidth - sideBarWidthOffset, window.innerHeight - sideBarHeightOffset);
     }
   }
 
@@ -54,7 +57,8 @@ function initScene(canvas) {
     if (progress.step === 'pixels') {
       progressElement.innerText = 'Processed ' + format(progress.current) + ' pixels out of ' + format(progress.total);
     } else if (progress.step === 'done') {
-      progressElement.style.display = 'none';
+      progressElement.style.opacity = '0';
+      progressElement.innerText = 'Loading image...';
       if (progress.imageObject.isUrl) {
         // other objects cannot be shared
         qs.set('link', progress.imageObject.name)
@@ -88,7 +92,8 @@ function initScene(canvas) {
       currentPixChart.dispose();
     }
 
-    progressElement.style.display = 'block';
+    progressElement.innerText = 'Loading image...';
+    progressElement.style.opacity = '1';
 
     currentPixChart = pixChart(imageLink, {
       canvas,

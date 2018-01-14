@@ -12,9 +12,17 @@ require.ensure('@/mainVue.js', () => {
 });
 
 function initPixChart(canvas) {
-  var width = config.isSmallScreen() ? window.innerWidth : window.innerWidth - config.sidebarWidth;
+  var width = window.innerWidth;
+  var height = window.innerHeight;
+  if (config.isSmallScreen()) {
+    height -= config.sidebarHeight;
+  } else {
+    // large screens have sidebar on the left, need to remove some space
+    // from canvas to account for the sidebar.
+    width -= config.sidebarWidth;
+  }
   canvas.width = width;
-  canvas.height =  window.innerHeight;
+  canvas.height =  height;
   var ctxOptions = {antialias: false};
 
   var gl = canvas.getContext('webgl', ctxOptions) ||
