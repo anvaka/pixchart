@@ -13,6 +13,8 @@
     <style>
 canvas {
   position: absolute;
+  left: 400px;
+  transition: left 200ms;
 }
 
 body {
@@ -31,6 +33,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+body.sidebar-closed canvas {
+  left: 0;
+}
+
+@media (max-width: 800px) {
+  canvas {
+    left: 0%;
+  }
+}
 #progress {
   position: absolute;
   top: 100px;

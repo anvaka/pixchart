@@ -9,7 +9,7 @@
       </p>
       </div>
     </div>
-  <div class='settings-dialog' v-if='webGLEnabled'>
+  <div class='settings-dialog' v-if='webGLEnabled' :class='{"collapsed": !scene.sidebarOpen}'>
     <form class='input-row' @submit.prevent='onSubmit'>
       <input class='image-picker' type="text" placeholder="Paste image link here" v-model='scene.image'
         @focus='onInputFocused' @blur='inputSelected = false'>
@@ -20,11 +20,11 @@
         <input type='file' id='local-files-button' class='nodisplay' name="files[]" multiple="" accept="image/*" @change='onFilePickerChanged'>
         <label class='browse-btn' for="local-files-button">select a local file</label> 
     </div>
+    <a class='hide-button' href='#' @click.prevent='scene.sidebarOpen = !scene.sidebarOpen'>
+      <svg> <path d='M10,10 L5,5 L10,0z' fill='white'></path> </svg>
+    </a>
+    <a href='#' @click.prevent='aboutVisible = !aboutVisible' class='about-link'>about...</a>
   </div>
-  <div>
-
-  </div>
-  <a href='#' @click.prevent='aboutVisible = !aboutVisible' class='about-link'>about...</a>
   <about @close='aboutVisible = false' v-if='aboutVisible'></about>
 </div>
 </template>
@@ -45,7 +45,14 @@ export default {
       webGLEnabled: window.webGLEnabled,
       scene: sceneState,
       inputSelected: false,
-      aboutVisible: false
+      aboutVisible: false,
+    }
+  },
+  watch: {
+    'scene.sidebarOpen': function() {
+      if (!sceneState.sidebarOpen) document.body.classList.add('sidebar-closed')
+      else document.body.classList.remove('sidebar-closed');
+      sceneState.updateSize();
     }
   },
 
@@ -63,7 +70,6 @@ export default {
       // Try to reset the type
       e.target.type = 'input';
       e.target.type = 'file';
-      //setTimeout(() => e.target.files = null, 10);
     }
   }
 }
@@ -71,12 +77,6 @@ export default {
 
 <style lang='stylus'>
 @import './shared.styl';
-
-#app {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-}
 
 a {
   color: primary-text;
@@ -94,13 +94,44 @@ a::selection, div::selection, h3::selection, h4::selection, p::selection, input:
   background: #d03094;
   color: #fff;
 }
+.hide-button {
+  position: absolute;
+  height: control-bar-height;
+  right: -23px;
+  width: 23px;
+  box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  padding-left: 4px;
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+.sidebar-closed {
+  .hide-button {
+    padding-left: 8px;
+    svg {
+      transform: scaleX(-1);
+    }
+  }
+}
+
+.settings-dialog.collapsed {
+  transform: translateX(- settings-width);
+}
+
 .settings-dialog {
-  width: 395px;
+  transition: transform;
+  transition-duration: 0.2s;
+  transition-timing-function: cubic-bezier(0.0,0.0,0.2,1);
+  width: settings-width;
+  height: 100%;
   position: absolute;
   display: flex;
   flex-direction: column;
   background-color: #061838;
-  box-shadow: 0 2px 4px rgba(0,0,0,.2);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
   color: #eee;
   padding: 12px;
   .input-row {

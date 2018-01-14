@@ -41,7 +41,6 @@ function loadParticles(image, options) {
   return new Promise((resolve) => { actualResolve = resolve; });
   // TODO: Should be customizable.
   function getValue(r, g, b) {
-    // return b/255;
     return rgbToHsl(r, g, b)[2];
     //return chroma(r, g, b).get('hsl.l');
   }
@@ -64,6 +63,8 @@ function loadParticles(image, options) {
     while (idx < pixelsCount) { 
       var invIndex = pixelsCount - idx - 4;
       var r = pixels[invIndex + 0], g = pixels[invIndex + 1], b = pixels[invIndex + 2];
+
+      if (r === 144 && g === 41 && b === 46) debugger;
       var v = getValue(r, g, b);
       // v ranges from 0 to 1.
       var bucketNumber = Math.round(v * bucketsCount);

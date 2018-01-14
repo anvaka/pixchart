@@ -1,5 +1,6 @@
 var queryState = require('query-state');
 var pixChart = require('./pixchart/index');
+var config = require('./config.js');
 
 var qs = queryState({}, {useSearch: true});
 
@@ -19,13 +20,15 @@ function initScene(canvas) {
     pendingTimeout = setTimeout(processNextInQueue, 0);
   }
   
-  window.addEventListener('resize', onWindowResize);
+  window.addEventListener('resize', updateSize);
 
   var state = {
     image: url,
+    sidebarOpen: true,
     qs,
+    updateSize,
     setImages,
-    dispose
+    dispose,
   }
 
   window.sceneState = state;
@@ -35,14 +38,15 @@ function initScene(canvas) {
       clearTimeout(pendingTimeout);
       pendingTimeout = 0;
     }
-    window.removeEventListener('resize', onWindowResize);
+    window.removeEventListener('resize', updateSize);
     currentPixChart.dispose();
     currentPixChart = null;
   }
 
-  function onWindowResize() {
+  function updateSize() {
     if (currentPixChart) {
-      currentPixChart.setSceneSize(window.innerWidth, window.innerHeight);
+      var sideBarWidth = (!state.sidebarOpen || config.isSmallScreen ()) ? 0: config.sidebarWidth;
+      currentPixChart.setSceneSize(window.innerWidth - sideBarWidth, window.innerHeight);
     }
   }
 

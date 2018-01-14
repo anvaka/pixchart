@@ -1,5 +1,5 @@
 var initScene = require('./scene');
-var bus = require('./bus');
+var config = require('./config');
 
 var canvas = document.getElementById('scene');
 // Canvas may not be available in test run
@@ -12,7 +12,8 @@ require.ensure('@/mainVue.js', () => {
 });
 
 function initPixChart(canvas) {
-  canvas.width = window.innerWidth;
+  var width = config.isSmallScreen() ? window.innerWidth : window.innerWidth - config.sidebarWidth;
+  canvas.width = width;
   canvas.height =  window.innerHeight;
   var ctxOptions = {antialias: false};
 

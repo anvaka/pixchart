@@ -34,17 +34,17 @@ var vertexShader = `
 
   const vec3 rand_constants = vec3(12.9898, 78.233, 4375.85453);
   float rand(const vec2 co) {
-      float t = dot(rand_constants.xy, co);
-      return fract(sin(t) * (rand_constants.z + t));
+    float t = dot(rand_constants.xy, co);
+    return fract(sin(t) * (rand_constants.z + t));
   } 
   void main() { 
     vec2 texture_pos = vec2(
-                mod(a_particle[3], u_sizes.x)/u_sizes.x,
+                fract(a_particle[3] / u_sizes.x),
                 floor(a_particle[3] / u_sizes.x)/(u_sizes.y)
     );
     v_color = texture2D(u_image, texture_pos);
 
-    float factor =  min(u_sizes[3]/u_sizes[1], u_sizes[2]/u_sizes[0]);
+    float factor = min(u_sizes[3]/u_sizes[1], u_sizes[2]/u_sizes[0]);
     vec2 source = vec2(
       2. * texture_pos.x - 1.,
       1. - 2.* texture_pos.y
@@ -60,13 +60,13 @@ var vertexShader = `
     if (u_frame <= timeSpan) t = ease(u_frame/timeSpan);
     else t = 1.;
 
-    if (a_particle.x < 0.) {
-      // these particles are filtered out.
-      target.x = source.x; //cos(atan(source.y, source.x)) * 2.;
-      target.y = source.y; //sin(atan(source.y, source.x)) * 2.;
-      v_color.a = 0.; //mix(0.1, 0., t);
-      //v_color = vec4(1.0, 0., 0., 1.);
-    }
+    // if (a_particle.x < 0.) {
+    //   // these particles are filtered out.
+    //   target.x = source.x; //cos(atan(source.y, source.x)) * 2.;
+    //   target.y = source.y; //sin(atan(source.y, source.x)) * 2.;
+    //   v_color.a = 0.; //mix(0.1, 0., t);
+    //   //v_color = vec4(1.0, 0., 0., 1.);
+    // }
 
     gl_PointSize = max(1., ceil(factor));
     float tmin = 1. - t;
