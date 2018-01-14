@@ -56,7 +56,7 @@ function pixChart(imageLink, options) {
   var imageWidth, imageHeight;
 
   var sceneWidth = canvas.clientWidth;
-  var sceneHeight = canvas.clientWidth;
+  var sceneHeight = canvas.clientHeight;
 
   var shaders = createShaders();
   var screenProgram = glUtils.createProgram(gl, shaders.vertexShader, shaders.fragmentShader);
