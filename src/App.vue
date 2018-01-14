@@ -10,16 +10,20 @@
       </div>
     </div>
   <div class='settings-dialog' v-if='webGLEnabled' :class='{"collapsed": !scene.sidebarOpen}'>
+    <div class='file-picker'>
+      <div class='image-buttons'>
+        <a href='#' class='highlighted' @click.prevent='selectRandomImage'>try random image</a>
+        <input type='file' id='local-files-button' class='nodisplay' name="files[]" multiple="" accept="image/*" @change='onFilePickerChanged'>
+        <label class='browse-btn' for="local-files-button">try local files</label> 
+      </div>
+      <div class='center'>or</div>
+    </div>
     <form class='input-row' @submit.prevent='onSubmit'>
       <input class='image-picker' type="text" placeholder="Paste image link here" v-model='scene.image'
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
         @focus='onInputFocused' @blur='inputSelected = false'>
       <a href="#" @click.prevent='onSubmit' class='submit'>Go</a>
     </form>
-    <div class='file-picker'>
-      or
-        <input type='file' id='local-files-button' class='nodisplay' name="files[]" multiple="" accept="image/*" @change='onFilePickerChanged'>
-        <label class='browse-btn' for="local-files-button">select a local file</label> 
-    </div>
     <a class='hide-button' href='#' @click.prevent='scene.sidebarOpen = !scene.sidebarOpen'>
       <svg> <path d='M10,10 L5,5 L10,0z' fill='white'></path> </svg>
     </a>
@@ -31,8 +35,10 @@
 
 <script>
 import About from './components/About';
+import createRandomImagePicker from './randomImagePicker';
 
 var sceneState = window.sceneState;
+var randomImagePicker = createRandomImagePicker();
 
 export default {
   name: 'app',
@@ -70,6 +76,12 @@ export default {
       // Try to reset the type
       e.target.type = 'input';
       e.target.type = 'file';
+    },
+
+    selectRandomImage() {
+      randomImagePicker.select().then((imageUrl) => {
+        sceneState.setImages([imageUrl]);
+      })
     }
   }
 }
@@ -189,12 +201,23 @@ a.about-link {
 .ui-container {
   position: absolute;
 }
+.image-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+.center {
+    text-align: center;
+    color: #658bbd;
+    font-size: 17px;
+    padding-bottom: 8px;
+}
 @media (max-width: small-screen) {
   a.about-link {
     bottom: 14px;
   }
   .settings-dialog {
     width: 100%;
+    height: auto;
   }
 }
 </style>
