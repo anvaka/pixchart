@@ -9,7 +9,7 @@ function randomImagePicker() {
 
   var storedLinks = predefinedLinks;
   var startFrom = Math.floor(Math.random() * storedLinks.length);
-  var page = 0;
+  var after;
   fetchNextPage();
 
   return {
@@ -34,7 +34,11 @@ function randomImagePicker() {
   }
 
   function getUrl(subredditName) {
-    return `https://www.reddit.com/r/${subredditName}/top/.json?sort=top&t=week&limit=100&page=${page}`;
+    var link = `https://www.reddit.com/r/${subredditName}/top/.json?sort=top&t=week&limit=100`;
+    if (after) {
+      link += '&after=' + after;
+    }
+    return link;
   }
 
   function storeResponse(resp) {
@@ -45,12 +49,12 @@ function randomImagePicker() {
       storedLinks = predefinedLinks;
       return;
     }
+    after = resp.data.after;
 
     storedLinks = children.filter(x => {
       return x.data.domain === 'i.imgur.com' && x.data.thumbnail !== 'nsfw'
     }).map(x => x.data.url);
     shuffle(storedLinks);
-    page += 1;
   }
 }
 
