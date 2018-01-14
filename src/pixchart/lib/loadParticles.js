@@ -64,7 +64,6 @@ function loadParticles(image, options) {
       var invIndex = pixelsCount - idx - 4;
       var r = pixels[invIndex + 0], g = pixels[invIndex + 1], b = pixels[invIndex + 2];
 
-      if (r === 144 && g === 41 && b === 46) debugger;
       var v = getValue(r, g, b);
       // v ranges from 0 to 1.
       var bucketNumber = Math.round(v * bucketsCount);
@@ -82,7 +81,7 @@ function loadParticles(image, options) {
       particleInfo[idx + 2] = framesCount - rnd * framesCount*0.75;
       particleInfo[idx + 3] = invIndex/4;
 
-      // if (v > 0.95) { 
+      // if (v < 0.32) { 
       //   // TODO: Proper ignore logic here.
       //   particleInfo[idx] = -1;
       // } else  

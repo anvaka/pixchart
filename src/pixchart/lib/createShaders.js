@@ -39,9 +39,17 @@ var vertexShader = `
   } 
   void main() { 
     vec2 texture_pos = vec2(
-                fract(a_particle[3] / u_sizes.x),
-                floor(a_particle[3] / u_sizes.x)/(u_sizes.y)
+                fract(a_particle[3] / u_sizes.x) + 0.5/u_sizes.x,
+                floor(a_particle[3] / u_sizes.x)/(u_sizes.y) + 0.5/u_sizes.y
     );
+
+    if (texture_pos.x >= 1.0 ) {
+      texture_pos.x = 0.5/u_sizes.x;
+    }
+    if (texture_pos.y >= 1.0) {
+      texture_pos.y = 0.5/u_sizes.y;
+    }
+
     v_color = texture2D(u_image, texture_pos);
 
     float factor = min(u_sizes[3]/u_sizes[1], u_sizes[2]/u_sizes[0]);
@@ -60,6 +68,7 @@ var vertexShader = `
     if (u_frame <= timeSpan) t = ease(u_frame/timeSpan);
     else t = 1.;
 
+    // if (length(v_color.rgb) < 0.81 || length(v_color.rgb) > 0.92) v_color.a = 0.;
     // if (a_particle.x < 0.) {
     //   // these particles are filtered out.
     //   target.x = source.x; //cos(atan(source.y, source.x)) * 2.;
