@@ -8,9 +8,10 @@ function randomImagePicker() {
   var mobilePapers = 'iWallpaper'
 
   var storedLinks = predefinedLinks;
-  var startFrom = Math.floor(Math.random() * storedLinks.length);
+  shuffle(predefinedLinks);
+  var startFrom = 0;
   var after;
-  fetchNextPage();
+  //fetchNextPage();
 
   return {
     select: select

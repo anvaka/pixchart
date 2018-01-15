@@ -93,7 +93,11 @@ function pixChart(imageLink, options) {
         notifyProgress();
 
         return {
-          texture: glUtils.createTexture(gl, image),
+          // Note: we are using stats.canvas here instead of image
+          // because on smaller devices (like a phone) large images
+          // can fail to load onto GPU (the texture is black). I'm not sure using
+          // canvas is going to have negative impact on quality. Need to keep an eye.
+          texture: glUtils.createTexture(gl, stats.canvas),
           stats: stats,
           width: image.width,
           height: image.height

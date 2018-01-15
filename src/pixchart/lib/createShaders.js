@@ -68,14 +68,13 @@ var vertexShader = `
     if (u_frame <= timeSpan) t = ease(u_frame/timeSpan);
     else t = 1.;
 
-    // if (length(v_color.rgb) < 0.81 || length(v_color.rgb) > 0.92) v_color.a = 0.;
-    // if (a_particle.x < 0.) {
-    //   // these particles are filtered out.
-    //   target.x = source.x; //cos(atan(source.y, source.x)) * 2.;
-    //   target.y = source.y; //sin(atan(source.y, source.x)) * 2.;
-    //   v_color.a = 0.; //mix(0.1, 0., t);
-    //   //v_color = vec4(1.0, 0., 0., 1.);
-    // }
+    if (a_particle.x < 0.) {
+      // these particles are filtered out.
+      target.x = source.x; //cos(atan(source.y, source.x)) * 2.;
+      target.y = source.y; //sin(atan(source.y, source.x)) * 2.;
+      v_color.a = 0.; //mix(0.1, 0., t);
+      //v_color = vec4(1.0, 0., 0., 1.);
+    }
 
     gl_PointSize = max(1., ceil(factor));
     float tmin = 1. - t;

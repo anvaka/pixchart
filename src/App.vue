@@ -279,6 +279,11 @@ a.about-icon {
   .settings-dialog {
     width: 100%;
     height: auto;
+    .sidebar-buttons {
+       a:last-child {
+         border-right: none;
+      }
+    }
   }
   .settings-dialog.collapsed {
     .sidebar-content {

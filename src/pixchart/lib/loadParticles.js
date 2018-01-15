@@ -81,7 +81,7 @@ function loadParticles(image, options) {
       particleInfo[idx + 2] = framesCount - rnd * framesCount*0.75;
       particleInfo[idx + 3] = invIndex/4;
 
-      // if (v < 0.32) { 
+      // if (0.3 <= v && v <= 0.5) { 
       //   // TODO: Proper ignore logic here.
       //   particleInfo[idx] = -1;
       // } else  
@@ -99,6 +99,7 @@ function loadParticles(image, options) {
     
     actualResolve({
       particleInfo: particleInfo,
+      canvas: cnv,
       maxYValue: maxYValue
     })
   }
