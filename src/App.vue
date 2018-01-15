@@ -17,7 +17,7 @@
 </svg>
 
       </a>
-      <a href='#' @click.prevent='selectRandomImage'>try random image</a>
+      <a href='#' @click.prevent='selectRandomImage' class='try-random'>try random image</a>
       <a href='#' @click.prevent='scene.sidebarOpen = !scene.sidebarOpen'>{{scene.sidebarOpen ? 'hide sidebar' : 'advanced'}}</a>
     </div>
 
@@ -161,6 +161,9 @@ a::selection, div::selection, h3::selection, h4::selection, p::selection, input:
     border-bottom: 1px solid secondary-text;
     justify-content: center;
     align-items: center;
+  }
+  a.try-random {
+    flex: 1.5;
   }
 }
 .hide-button {
