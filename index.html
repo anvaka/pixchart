@@ -34,6 +34,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+body.drag-over .drop-help{
+  display: flex;
+}
+
 body.sidebar-closed canvas {
   left: 0;
 }
@@ -67,6 +71,21 @@ body.sidebar-closed canvas {
   border-bottom: 1px dashed;
 }
 
+.drop-help {
+  position: fixed;
+  display: none;
+  justify-content: center;
+  background: rgb(19, 41, 79, 0.8);
+  color: white;
+  align-items: center;
+  z-index: 3;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
 @media (max-width: 800px) {
   canvas {
     left: 0%;
@@ -86,6 +105,9 @@ body.sidebar-closed canvas {
     <div id='progress'></div>
     <div id="app"></div>
     <!-- built files will be auto injected -->
+    <div class='drop-help'>
+      <h2>Drop files here</h2>
+    </div>
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),

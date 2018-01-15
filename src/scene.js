@@ -1,6 +1,7 @@
 var queryState = require('query-state');
 var pixChart = require('./pixchart/index');
 var config = require('./config.js');
+var createFileDropHandler = require('./lib/fileDrop');
 
 var qs = queryState({}, {useSearch: true});
 
@@ -21,6 +22,7 @@ function initScene(canvas) {
   }
   
   window.addEventListener('resize', updateSize);
+  var dropHandler = createFileDropHandler(document.body, handleDroppedFiles);
 
   var state = {
     image: url,
@@ -34,6 +36,18 @@ function initScene(canvas) {
   }
 
   window.sceneState = state;
+  return;
+
+  function handleDroppedFiles(files) {
+    var images = files.filter(isImage)
+    if (images.length > 0) {
+      setImages(images);
+    }
+  }
+
+  function isImage(file) {
+    return file && file.type && file.type.indexOf('image/') === 0;
+  }
 
   function dispose() {
     if (pendingTimeout) {
@@ -41,6 +55,8 @@ function initScene(canvas) {
       pendingTimeout = 0;
     }
     window.removeEventListener('resize', updateSize);
+    dropHandler.dispose();
+
     currentPixChart.dispose();
     currentPixChart = null;
   }
