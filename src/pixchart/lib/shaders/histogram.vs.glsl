@@ -1,7 +1,8 @@
 precision highp float;
 uniform sampler2D u_image;
 
-uniform float u_frame;
+// Everything we need to know about frame
+uniform vec4 u_frame;
 uniform float u_max_y_value;
 uniform vec2 mouse_pos;
 uniform vec4 u_sizes;
@@ -24,6 +25,16 @@ float rand(const vec2 co) {
   float t = dot(rand_constants.xy, co);
   return fract(sin(t) * (rand_constants.z + t));
 } 
+
+vec3 rgb2hsv(vec3 c) {
+    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+
+    float d = q.x - min(q.w, q.y);
+    float e = 1.0e-10;
+    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+}
 
 void main() { 
   vec2 texture_pos = vec2(
@@ -52,9 +63,9 @@ void main() {
   ) * factor * u_sizes.xy/u_sizes.zw; 
 
   float timeSpan = a_particle.z;
-  float t;
-  if (u_frame <= timeSpan) t = ease(u_frame/timeSpan);
-  else t = 1.;
+  float frameRatio = (timeSpan - u_frame[1])/(u_frame[2] - u_frame[1]);
+  float t = clamp((u_frame[0] - u_frame[1])/(u_frame[2] - u_frame[1])/frameRatio, 0., 1.);
+  t = ease(t);
 
   if (a_particle.x < 0.) {
     // these particles are filtered out.
@@ -66,7 +77,7 @@ void main() {
 
   float tmin = 1. - t;
   vec2 dest = tmin * source + t * target;
-  // vec2 dest = tmin * tmin * source + 2. * tmin * vec2(0.) * t + t * t * target;
+  //vec2 dest = tmin * tmin * source + 2. * tmin * arrival0 * t + t * t * target;
   //vec2 dest = tmin * tmin * tmin * source + 3. * tmin * tmin * vec2(0., 0.1) * t + 3. * tmin * t * t * target/2. + target * t * t * t; 
   gl_Position = vec4(dest, 0, 1);
   gl_PointSize = max(1., ceil(factor));

@@ -31,7 +31,7 @@ function pixChart(imageLink, options) {
   var nextAnimationFrame, pendingTimeout;
 
   var disposed = false;
-  var framesCount = options.framesCount || 120;
+  var framesCount = options.framesCount || 60;
 
   var currentFrameNumber = state === ANIMATION_COLLAPSE ? 0 : framesCount;
 
@@ -53,7 +53,7 @@ function pixChart(imageLink, options) {
 
   // Image size can be different than scene size (e.g. image is smaller than screen)
   // Thus, we need to track them both.
-  var imageWidth, imageHeight;
+  var imageWidth, imageHeight, minFrameSpan, maxFrameSpan;
 
   var sceneWidth = canvas.clientWidth;
   var sceneHeight = canvas.clientHeight;
@@ -144,15 +144,20 @@ function pixChart(imageLink, options) {
     if (disposed) return;
 
     imageWidth = imgInfo.width, imageHeight = imgInfo.height;
+    var stats = imgInfo.stats;
+    minFrameSpan = stats.minFrameSpan;
+    maxFrameSpan = stats.maxFrameSpan;
 
-    var particleInfoBuffer = glUtils.createBuffer(gl, imgInfo.stats.particleInfo);
+    var particleInfoBuffer = glUtils.createBuffer(gl, stats.particleInfo);
   
     gl.useProgram(screenProgram.program);  
     
     glUtils.bindAttribute(gl, particleInfoBuffer, screenProgram.a_particle, 4);  
     glUtils.bindTexture(gl, imgInfo.texture, 2);
 
-    gl.uniform1f(screenProgram.u_frame, currentFrameNumber);
+    setInitialFrameNumber();
+    gl.uniform4f(screenProgram.u_frame, currentFrameNumber, minFrameSpan, maxFrameSpan, state);
+
     gl.uniform1f(screenProgram.u_max_y_value, imgInfo.stats.maxYValue);
     gl.uniform4f(screenProgram.u_sizes, imageWidth, imageHeight, sceneWidth, sceneHeight);
 
@@ -174,36 +179,8 @@ function pixChart(imageLink, options) {
       gl.uniform4f(screenProgram.u_sizes, imageWidth, imageHeight, sceneWidth, sceneHeight);
     }
 
-    gl.uniform1f(screenProgram.u_frame, currentFrameNumber);
+    gl.uniform4f(screenProgram.u_frame, currentFrameNumber, minFrameSpan, maxFrameSpan, state);
     gl.drawArrays(gl.POINTS, 0, imageWidth * imageHeight);  
-  }
-
-
-  function fadeIn() {
-    var done;
-    var currentFrame = 0;
-    var fadeInLength = 33;
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-    return new Promise(resolve => {
-       done = resolve;
-       nextAnimationFrame = requestAnimationFrame(fadeInFrame);
-    });
-
-    function fadeInFrame() {
-      gl.useProgram(screenProgram.program); 
-      currentFrame += 1;
-      if (currentFrame < fadeInLength) nextAnimationFrame = requestAnimationFrame(fadeInFrame)
-      else {
-        gl.disable(gl.BLEND);
-        done();
-        return;
-      }
-
-      gl.uniform1f(screenProgram.u_alpha, currentFrame/fadeInLength);
-      gl.drawArrays(gl.POINTS, 0, imageWidth * imageHeight);  
-    }
   }
 
   function startExpandCollapseCycle() {
@@ -226,7 +203,7 @@ function pixChart(imageLink, options) {
     // We also want the expand phase to be a tiny bit faster than
     // collapse phase.
     if (state === ANIMATION_COLLAPSE) {
-      if (currentFrameNumber < framesCount) {
+      if (currentFrameNumber < maxFrameSpan) {
         currentFrameNumber += 1;
         nextAnimationFrame = requestAnimationFrame(animate);
       } else {
@@ -234,9 +211,9 @@ function pixChart(imageLink, options) {
         completeState();
       }
     } else {
-        if (currentFrameNumber > 0 ) {
+        if (currentFrameNumber > minFrameSpan ) {
           currentFrameNumber -= 1;
-          if (currentFrameNumber > 0) currentFrameNumber -= 1;
+          if (currentFrameNumber > minFrameSpan) currentFrameNumber -= 0.5;
           nextAnimationFrame = requestAnimationFrame(animate);
         } else {
           state = ANIMATION_COLLAPSE;
@@ -245,8 +222,12 @@ function pixChart(imageLink, options) {
       }
     }
 
+    function setInitialFrameNumber() {
+      currentFrameNumber = state === ANIMATION_COLLAPSE ? minFrameSpan: maxFrameSpan;
+    }
+
     function completeState() {
-      currentFrameNumber = state === 2 ? framesCount : 0;
+      setInitialFrameNumber();
       if (state === initialState) {
         // make a pause, let the clients re-trigger.
         if (options.cycleComplete) {

@@ -1,5 +1,6 @@
 // var chroma = require('chroma-js')
 var {rgbToHsl} = require('./colors');
+var random = require('ngraph.random')(42);
 
 module.exports = loadParticles;
 
@@ -26,6 +27,7 @@ function loadParticles(image, options) {
 
   var pixels = ctx.getImageData(0, 0, width, height).data;
   var idx = 0;
+  var minFrameSpan = Number.POSITIVE_INFINITY, maxFrameSpan = Number.NEGATIVE_INFINITY;
 
   // each pixel is mapped to height inside its bucket;
   var particleInfo = new Float32Array(4 * n);
@@ -75,11 +77,16 @@ function loadParticles(image, options) {
 
       currentYValue = bucketColors[bucketNumber] += 1;
       // assign this pixel to this height in the bucket
-      var rnd = Math.random();// * Math.abs(0.5 -v);
+      var rnd = random.gaussian();
+      var frameSpan = (framesCount * .42) * rnd + framesCount;
+
       particleInfo[idx + 0] = v;
       particleInfo[idx + 1] = currentYValue - 1;
-      particleInfo[idx + 2] = framesCount - rnd * framesCount*0.75;
+      particleInfo[idx + 2] = frameSpan;
       particleInfo[idx + 3] = invIndex/4;
+
+      if (frameSpan < minFrameSpan) minFrameSpan = frameSpan;
+      if (frameSpan > maxFrameSpan) maxFrameSpan = frameSpan;
 
       // if (0.3 <= v && v <= 0.5) { 
       //   // TODO: Proper ignore logic here.
@@ -98,6 +105,8 @@ function loadParticles(image, options) {
     console.log('initialized in ' + initIntervals + ' intervals; Max Value:', maxYValue);
     
     actualResolve({
+      minFrameSpan,
+      maxFrameSpan,
       particleInfo: particleInfo,
       canvas: cnv,
       maxYValue: maxYValue
