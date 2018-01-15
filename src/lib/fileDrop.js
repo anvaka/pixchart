@@ -42,7 +42,7 @@ function fileDrop(dropHandler, onDropped) {
       }
     } else {
       // Use DataTransfer interface to access the file(s)
-      for (var i=0; i < dt.files.length; i++) {
+      for (var i = 0; i < dt.files.length; i++) {
         var file = dt.files[i];
         files.push(file);
       } 

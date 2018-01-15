@@ -20,8 +20,10 @@ function initScene(canvas) {
     queue = [url];
     pendingTimeout = setTimeout(processNextInQueue, 0);
   }
-  
+
+  window.addEventListener('paste', handlePaste, false);
   window.addEventListener('resize', updateSize);
+
   var dropHandler = createFileDropHandler(document.body, handleDroppedFiles);
 
   var state = {
@@ -37,6 +39,22 @@ function initScene(canvas) {
 
   window.sceneState = state;
   return;
+
+  function handlePaste(e){
+    var items = e.clipboardData.items;
+    var files = [];
+    for(var i = 0; i < items.length; ++i) {
+      var file = items[i];
+      if (file.kind == "file") {
+        files.push(file.getAsFile());
+      }
+    }
+    if (files.length > 0) {
+      e.preventDefault();
+    }
+
+    handleDroppedFiles(files);
+  }
 
   function handleDroppedFiles(files) {
     var images = files.filter(isImage)
@@ -55,6 +73,8 @@ function initScene(canvas) {
       pendingTimeout = 0;
     }
     window.removeEventListener('resize', updateSize);
+    window.removeEventListener('paste', handlePaste, false);
+
     dropHandler.dispose();
 
     currentPixChart.dispose();
