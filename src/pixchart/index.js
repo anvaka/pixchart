@@ -54,6 +54,7 @@ function pixChart(imageLink, options) {
   // Image size can be different than scene size (e.g. image is smaller than screen)
   // Thus, we need to track them both.
   var imageWidth, imageHeight, minFrameSpan, maxFrameSpan;
+  var imgInfo, particleInfoBuffer;
 
   var sceneWidth = canvas.clientWidth;
   var sceneHeight = canvas.clientHeight;
@@ -140,15 +141,16 @@ function pixChart(imageLink, options) {
     disposed = true;
   }
 
-  function initWebGLPrimitives(imgInfo) {
+  function initWebGLPrimitives(loadedImage) {
     if (disposed) return;
 
+    imgInfo = loadedImage
     imageWidth = imgInfo.width, imageHeight = imgInfo.height;
     var stats = imgInfo.stats;
     minFrameSpan = stats.minFrameSpan;
     maxFrameSpan = stats.maxFrameSpan;
 
-    var particleInfoBuffer = glUtils.createBuffer(gl, stats.particleInfo);
+    particleInfoBuffer = glUtils.createBuffer(gl, stats.particleInfo);
   
     gl.useProgram(screenProgram.program);  
     
@@ -174,10 +176,10 @@ function pixChart(imageLink, options) {
 
   function drawCurrentFrame() {
     gl.useProgram(screenProgram.program); 
-    if (requestSizeUpdate) {
-      requestSizeUpdate = false;
-      gl.uniform4f(screenProgram.u_sizes, imageWidth, imageHeight, sceneWidth, sceneHeight);
-    }
+    glUtils.bindAttribute(gl, particleInfoBuffer, screenProgram.a_particle, 4);  
+    glUtils.bindTexture(gl, imgInfo.texture, 2);
+
+    gl.uniform4f(screenProgram.u_sizes, imageWidth, imageHeight, sceneWidth, sceneHeight);
 
     gl.uniform4f(screenProgram.u_frame, currentFrameNumber, minFrameSpan, maxFrameSpan, state);
     gl.drawArrays(gl.POINTS, 0, imageWidth * imageHeight);  
@@ -199,6 +201,7 @@ function pixChart(imageLink, options) {
   }
     
   function scheduleNextFrame() {
+    // TODO: Simplify this code. It's remnant of older loop.
     // We want to pause when collapse or expand phase has finished.
     // We also want the expand phase to be a tiny bit faster than
     // collapse phase.
