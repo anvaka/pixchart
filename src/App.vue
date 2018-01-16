@@ -178,7 +178,7 @@ a::selection, div::selection, h3::selection, h4::selection, p::selection, input:
     align-items: center;
   }
   a.try-random {
-    flex: 1.5;
+    flex: 1;
   }
 }
 .hide-button {
@@ -318,6 +318,11 @@ a.about-icon {
     .sidebar-content {
       top: -250px;
     }
+  }
+}
+@media (max-width: 350px) {
+  .sidebar-buttons {
+    font-size: 12px;
   }
 }
 </style>

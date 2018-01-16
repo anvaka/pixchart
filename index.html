@@ -15,7 +15,13 @@ canvas {
   position: absolute;
   left: 400px;
   top: 0;
-  transition: left 200ms, top 200ms;
+  opacity: 0;
+  transition: left 200ms, top 200ms, opacity 300ms ease-in-out;
+}
+
+@keyframes pulse-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
 }
 
 body {

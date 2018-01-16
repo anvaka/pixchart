@@ -135,6 +135,7 @@ function pixChart(imageLink, options) {
     cancelAnimationFrame(nextAnimationFrame);
     clearTimeout(pendingTimeout);
 
+    canvas.style.opacity = 0;
     particleLoaderSettings.isCancelled = true;
     nextAnimationFrame = 0;
     pendingTimeout = 0;
@@ -143,6 +144,7 @@ function pixChart(imageLink, options) {
 
   function initWebGLPrimitives(loadedImage) {
     if (disposed) return;
+    canvas.style.opacity = 1;
 
     imgInfo = loadedImage
     imageWidth = imgInfo.width, imageHeight = imgInfo.height;
@@ -176,10 +178,13 @@ function pixChart(imageLink, options) {
 
   function drawCurrentFrame() {
     gl.useProgram(screenProgram.program); 
-    glUtils.bindAttribute(gl, particleInfoBuffer, screenProgram.a_particle, 4);  
-    glUtils.bindTexture(gl, imgInfo.texture, 2);
+    // glUtils.bindAttribute(gl, particleInfoBuffer, screenProgram.a_particle, 4);  
+    // glUtils.bindTexture(gl, imgInfo.texture, 2);
 
-    gl.uniform4f(screenProgram.u_sizes, imageWidth, imageHeight, sceneWidth, sceneHeight);
+    if (requestSizeUpdate) {
+      requestSizeUpdate = false;
+      gl.uniform4f(screenProgram.u_sizes, imageWidth, imageHeight, sceneWidth, sceneHeight);
+    }
 
     gl.uniform4f(screenProgram.u_frame, currentFrameNumber, minFrameSpan, maxFrameSpan, state);
     gl.drawArrays(gl.POINTS, 0, imageWidth * imageHeight);  
