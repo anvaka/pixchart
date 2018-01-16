@@ -153,6 +153,8 @@ function pixChart(imageLink, options) {
     maxFrameSpan = stats.maxFrameSpan;
 
     particleInfoBuffer = glUtils.createBuffer(gl, stats.particleInfo);
+    // gl.enable(gl.BLEND);
+    // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   
     gl.useProgram(screenProgram.program);  
     

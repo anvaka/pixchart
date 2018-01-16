@@ -20,6 +20,17 @@ float ease(float t) {
   return t < 0.5 ? 2. * t * t : -1. + (4. - 2. * t) * t;
 }
 
+float bease(float t, vec2 p1, vec2 p2) {
+  vec2 p0 = vec2(0.);
+  vec2 p3 = vec2(1.);
+  float one_minus_t = 1. - t;
+
+  return (one_minus_t * one_minus_t * one_minus_t * p0 + 
+    3. * one_minus_t * one_minus_t * t * p1 + 
+    3. * one_minus_t * t * t * p1 +
+    t * t * t * p3).y;
+}
+
 const vec3 rand_constants = vec3(12.9898, 78.233, 4375.85453);
 float rand(const vec2 co) {
   float t = dot(rand_constants.xy, co);
@@ -65,7 +76,7 @@ void main() {
   float timeSpan = a_particle.z;
   float frameRatio = (timeSpan - u_frame[1])/(u_frame[2] - u_frame[1]);
   float t0 = clamp((u_frame[0] - u_frame[1])/(u_frame[2] - u_frame[1])/frameRatio, 0., 1.);
-  float t =t0; // ease(1.-t0);
+  float t = ease(t0);
 
   if (a_particle.x < 0.) {
     // these particles are filtered out.
@@ -75,6 +86,12 @@ void main() {
     //v_color = vec4(1.0, 0., 0., 1.);
   }
 
+//  t = bease(t0, vec2(0.68, -0.55), vec2(0.265, 1.55)); // easeInOutBack
+   // t = bease(t0, vec2(0.5, 0.5), vec2(0.5, 0.5)); // linear
+  //t = bease(t0, vec2(0.19, 1), vec2(0.22, 1)); // easeOutExpo
+  //t = bease(t0, vec2(1, 0.), vec2(0., 1)); // easeOutExpo
+  //t = bease(t0, vec2(0.645, 0.045), vec2(0.355, 1)); // easeInOutCubic
+ 
   float tmin = 1. - t;
   vec2 dest = u_frame[3] == 2. ? tmin * target + t * source : tmin * source + t * target;
   //vec2 dest = tmin * tmin * source + 2. * tmin * arrival0 * t + t * t * target;
