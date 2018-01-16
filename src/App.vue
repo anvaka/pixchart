@@ -53,6 +53,7 @@ import About from './components/About';
 import Share from './components/Share';
 import bus from './bus';
 import createRandomImagePicker from './randomImagePicker';
+import config from './config';
 
 var sceneState = window.sceneState;
 var randomImagePicker = createRandomImagePicker();
@@ -85,6 +86,8 @@ export default {
   methods: {
     onSubmit() {
       sceneState.setImages([this.scene.image]);
+
+      if (config.isSmallScreen()) this.scene.sidebarOpen = false;
     },
     onInputFocused(e) {
       e.target.select();
@@ -96,6 +99,7 @@ export default {
       // Try to reset the type
       e.target.type = 'input';
       e.target.type = 'file';
+      if (config.isSmallScreen()) this.scene.sidebarOpen = false;
     },
     openShareDialog() {
       bus.fire('open-share-dialog');

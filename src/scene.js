@@ -142,13 +142,13 @@ function initScene(canvas) {
   }
 
   function setImages(files) {
-    if (files.length > 0) {
-      // TODO: Queued images are not visible anywhere.
-      //  Might need to improve UX around this area
-      queue = files;
-      lastIndex = 0;
-      processNextInQueue();
-    }
+    if (files.length === 0) return;
+    // TODO: Queued images are not visible anywhere.
+    //  Might need to improve UX around this area
+    queue = files;
+    lastIndex = 0;
+    
+    processNextInQueue();
   }
 
   function processNextInQueue() {
