@@ -53,6 +53,7 @@ export default {
 .about {
   position: absolute;
   overflow-y: auto;
+  z-index: 3;
   top: 0;
   left: 0;
   width: 100%;
