@@ -31,7 +31,7 @@ function pixChart(imageLink, options) {
   var nextAnimationFrame, pendingTimeout;
 
   var disposed = false;
-  var framesCount = options.framesCount || 60;
+  var framesCount = options.framesCount || 40;
 
   var currentFrameNumber = state === ANIMATION_COLLAPSE ? 0 : framesCount;
 
@@ -211,9 +211,9 @@ function pixChart(imageLink, options) {
         completeState();
       }
     } else {
-        if (currentFrameNumber > minFrameSpan ) {
-          currentFrameNumber -= 1;
-          if (currentFrameNumber > minFrameSpan) currentFrameNumber -= 0.5;
+        if (currentFrameNumber < maxFrameSpan ) {
+          currentFrameNumber += 1;
+          if (currentFrameNumber < maxFrameSpan) currentFrameNumber += 1.0;
           nextAnimationFrame = requestAnimationFrame(animate);
         } else {
           state = ANIMATION_COLLAPSE;
@@ -223,7 +223,7 @@ function pixChart(imageLink, options) {
     }
 
     function setInitialFrameNumber() {
-      currentFrameNumber = state === ANIMATION_COLLAPSE ? minFrameSpan: maxFrameSpan;
+      currentFrameNumber = minFrameSpan;
     }
 
     function completeState() {

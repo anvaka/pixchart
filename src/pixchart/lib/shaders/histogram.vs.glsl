@@ -64,8 +64,8 @@ void main() {
 
   float timeSpan = a_particle.z;
   float frameRatio = (timeSpan - u_frame[1])/(u_frame[2] - u_frame[1]);
-  float t = clamp((u_frame[0] - u_frame[1])/(u_frame[2] - u_frame[1])/frameRatio, 0., 1.);
-  t = ease(t);
+  float t0 = clamp((u_frame[0] - u_frame[1])/(u_frame[2] - u_frame[1])/frameRatio, 0., 1.);
+  float t =t0; // ease(1.-t0);
 
   if (a_particle.x < 0.) {
     // these particles are filtered out.
@@ -76,7 +76,7 @@ void main() {
   }
 
   float tmin = 1. - t;
-  vec2 dest = tmin * source + t * target;
+  vec2 dest = u_frame[3] == 2. ? tmin * target + t * source : tmin * source + t * target;
   //vec2 dest = tmin * tmin * source + 2. * tmin * arrival0 * t + t * t * target;
   //vec2 dest = tmin * tmin * tmin * source + 3. * tmin * tmin * vec2(0., 0.1) * t + 3. * tmin * t * t * target/2. + target * t * t * t; 
   gl_Position = vec4(dest, 0, 1);
