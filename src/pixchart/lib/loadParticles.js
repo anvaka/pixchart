@@ -77,8 +77,7 @@ function loadParticles(image, options) {
 
       currentYValue = bucketColors[bucketNumber] += 1;
       // assign this pixel to this height in the bucket
-      var rnd = random.gaussian();
-      var frameSpan = (framesCount * .42) * rnd + framesCount;
+      var frameSpan = random.gaussian();
 
       particleInfo[idx + 0] = v;
       particleInfo[idx + 1] = currentYValue - 1;
@@ -88,7 +87,7 @@ function loadParticles(image, options) {
       if (frameSpan < minFrameSpan) minFrameSpan = frameSpan;
       if (frameSpan > maxFrameSpan) maxFrameSpan = frameSpan;
 
-      // if (0.3 <= v && v <= 0.5) { 
+      // if (v <= 0.09) { 
       //   // TODO: Proper ignore logic here.
       //   particleInfo[idx] = -1;
       // } else  

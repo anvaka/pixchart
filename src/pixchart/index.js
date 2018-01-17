@@ -31,7 +31,7 @@ function pixChart(imageLink, options) {
   var nextAnimationFrame, pendingTimeout;
 
   var disposed = false;
-  var framesCount = options.framesCount || 40;
+  var framesCount = options.framesCount || 120;
 
   var currentFrameNumber = state === ANIMATION_COLLAPSE ? 0 : framesCount;
 
@@ -53,7 +53,7 @@ function pixChart(imageLink, options) {
 
   // Image size can be different than scene size (e.g. image is smaller than screen)
   // Thus, we need to track them both.
-  var imageWidth, imageHeight, minFrameSpan, maxFrameSpan;
+  var imageWidth, imageHeight, minFrameSpan, maxFrameSpan, frameChangeRate;
   var imgInfo, particleInfoBuffer;
 
   var sceneWidth = canvas.clientWidth;
@@ -78,7 +78,8 @@ function pixChart(imageLink, options) {
     dispose,
     imageLink,
     restartCycle: startExpandCollapseCycle,
-    setSceneSize: setSceneSize
+    setSceneSize: setSceneSize,
+    setFramesCount
   };
 
   return api;
@@ -125,6 +126,11 @@ function pixChart(imageLink, options) {
     requestAnimationFrame(refreshSize);
   }
 
+  function setFramesCount(newCount) {
+    framesCount = Math.max(newCount, 1);
+    frameChangeRate = (maxFrameSpan - minFrameSpan)/framesCount;
+  }
+
   function refreshSize() {
     requestSizeUpdate = true;
     gl.viewport(0, 0, sceneWidth, sceneHeight);
@@ -151,6 +157,7 @@ function pixChart(imageLink, options) {
     var stats = imgInfo.stats;
     minFrameSpan = stats.minFrameSpan;
     maxFrameSpan = stats.maxFrameSpan;
+    frameChangeRate = (maxFrameSpan - minFrameSpan)/framesCount;
 
     particleInfoBuffer = glUtils.createBuffer(gl, stats.particleInfo);
     // gl.enable(gl.BLEND);
@@ -214,7 +221,7 @@ function pixChart(imageLink, options) {
     // collapse phase.
     if (state === ANIMATION_COLLAPSE) {
       if (currentFrameNumber < maxFrameSpan) {
-        currentFrameNumber += 1;
+        currentFrameNumber += frameChangeRate;
         nextAnimationFrame = requestAnimationFrame(animate);
       } else {
         state = ANIMATION_EXPAND;
@@ -222,8 +229,8 @@ function pixChart(imageLink, options) {
       }
     } else {
         if (currentFrameNumber < maxFrameSpan ) {
-          currentFrameNumber += 1;
-          if (currentFrameNumber < maxFrameSpan) currentFrameNumber += 1.0;
+          currentFrameNumber += frameChangeRate;
+          if (currentFrameNumber < maxFrameSpan) currentFrameNumber += frameChangeRate;
           nextAnimationFrame = requestAnimationFrame(animate);
         } else {
           state = ANIMATION_COLLAPSE;

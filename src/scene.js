@@ -3,7 +3,12 @@ var pixChart = require('./pixchart/index');
 var config = require('./config.js');
 var createFileDropHandler = require('./lib/fileDrop');
 
-var qs = queryState({}, {useSearch: true});
+var DEFAULT_ANIMATION_DURATION = 2.7; // in seconds, because visible to users
+var PAUSE_BETWEEN_CYCLES = 1000; // in milliseconds, because for developers
+
+var qs = queryState({
+  d: DEFAULT_ANIMATION_DURATION
+}, {useSearch: true});
 
 module.exports = initScene;
 
@@ -32,10 +37,17 @@ function initScene(canvas) {
     // when they are browsing from mobile.
     sidebarOpen: !config.isSmallScreen(),
     qs,
+    duration: DEFAULT_ANIMATION_DURATION,
+
     updateSize,
-    setImages,
+
     dispose,
-  }
+    
+    setImages,
+    setAnimationDuration
+  };
+
+  setAnimationDuration(qs.get('d'));
 
   window.sceneState = state;
   return;
@@ -125,18 +137,32 @@ function initScene(canvas) {
     }
 
     if (currentPixChart) {
-      currentPixChart.dispose();
-    }
+      if (pendingTimeout) {
+        clearTimeout(pendingTimeout);
+        pendingTimeout = 0;
+      } 
 
+      currentPixChart.dispose();
+      pendingTimeout = setTimeout(() => {
+        createPixChart(imageLink)
+        pendingTimeout = 0;
+      }, 250); // Give small time for fade animation to finish.
+    } else {
+      createPixChart(imageLink);
+    }
+  }
+
+  function createPixChart(imageLink) {
     progressElement.innerText = 'Loading image...';
     progressElement.style.opacity = '1';
 
     currentPixChart = pixChart(imageLink, {
       canvas,
       scaleImage: true,
+      framesCount: toFrames(state.duration),
       progress: showLoadingProgress,
       cycleComplete: () => {
-        pendingTimeout = setTimeout(processNextInQueue, 1000);
+        pendingTimeout = setTimeout(processNextInQueue, PAUSE_BETWEEN_CYCLES);
       }
     });
   }
@@ -147,8 +173,23 @@ function initScene(canvas) {
     //  Might need to improve UX around this area
     queue = files;
     lastIndex = 0;
-    
+
     processNextInQueue();
+  }
+
+  function setAnimationDuration(newCount) {
+    var seconds = Number.parseFloat(newCount)
+    if (Number.isNaN(seconds)) return;
+
+    qs.set('d', seconds);
+    state.duration = seconds;
+    if (currentPixChart) {
+      currentPixChart.setFramesCount(toFrames(seconds));
+    }
+  }
+
+  function toFrames(seconds) {
+    return seconds * 60; // Assuming 60 fps.
   }
 
   function processNextInQueue() {

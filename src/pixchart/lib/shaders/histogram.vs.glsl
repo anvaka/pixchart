@@ -27,7 +27,7 @@ float bease(float t, vec2 p1, vec2 p2) {
 
   return (one_minus_t * one_minus_t * one_minus_t * p0 + 
     3. * one_minus_t * one_minus_t * t * p1 + 
-    3. * one_minus_t * t * t * p1 +
+    3. * one_minus_t * t * t * p2 +
     t * t * t * p3).y;
 }
 
@@ -90,7 +90,7 @@ void main() {
    // t = bease(t0, vec2(0.5, 0.5), vec2(0.5, 0.5)); // linear
   //t = bease(t0, vec2(0.19, 1), vec2(0.22, 1)); // easeOutExpo
   //t = bease(t0, vec2(1, 0.), vec2(0., 1)); // easeOutExpo
-  //t = bease(t0, vec2(0.645, 0.045), vec2(0.355, 1)); // easeInOutCubic
+ t = bease(t0, vec2(0., 0.19), vec2(0.61, 1)); // easeInOutCubic
  
   float tmin = 1. - t;
   vec2 dest = u_frame[3] == 2. ? tmin * target + t * source : tmin * source + t * target;

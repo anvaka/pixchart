@@ -27,18 +27,27 @@
     </div>
 
   <div class='sidebar-content'>
-    <div class='title'>Image picker</div>
-      <div class='help-text'>Paste image link below</div>
+    <div class='group'>
+      <h3 class='title'>Image</h3>
+      <div class='help-text'><label class='browse-btn' for="local-files-button">Pick a file</label> from your device or paste image below</div>
       <form class='input-row' @submit.prevent='onSubmit'>
         <input class='image-picker' type="text" placeholder="Paste image link here" v-model='scene.image'
           autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
           @focus='onInputFocused' @blur='inputSelected = false'>
         <a href="#" @click.prevent='onSubmit' class='submit'>Go</a>
       </form>
-      <div class='help-text'>or <label class='browse-btn' for="local-files-button">pick a file</label> from your device</div>
-          <input type='file' id='local-files-button' class='nodisplay' name="files[]" multiple="" accept="image/*" @change='onFilePickerChanged'>
+      <input type='file' id='local-files-button' class='nodisplay' name="files[]" multiple="" accept="image/*" @change='onFilePickerChanged'>
     </div>
 
+    <div class='group separate'>
+      <h3 class='title'>Animation</h3>
+      <div class='row'>
+        <div class='col'>Duration (in seconds)</div>
+        <div class='col'><input type='number' step='0.1' min='0' v-model='duration' @keyup.enter='onSubmitAnimation' autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
+      </div>
+    </div>
+
+    </div>
     <a class='hide-button' href='#' @click.prevent='scene.sidebarOpen = !scene.sidebarOpen'>
       <svg> <path d='M10,10 L5,5 L10,0z' fill='white'></path> </svg>
     </a>
@@ -74,12 +83,16 @@ export default {
       scene: sceneState,
       inputSelected: false,
       aboutVisible: false,
+      duration: sceneState.duration
     }
   },
   watch: {
     'scene.sidebarOpen': function() {
       ensureBodyHasSidebarStyle()
       sceneState.updateSize();
+    },
+    duration(newValue) {
+      sceneState.setAnimationDuration(newValue);
     }
   },
 
@@ -88,6 +101,9 @@ export default {
       sceneState.setImages([this.scene.image]);
 
       if (config.isSmallScreen()) this.scene.sidebarOpen = false;
+    },
+    onSubmitAnimation() {
+      console.log('TODO: implement me')
     },
     onInputFocused(e) {
       e.target.select();
@@ -108,7 +124,7 @@ export default {
       randomImagePicker.select().then((imageUrl) => {
         sceneState.setImages([imageUrl]);
       })
-    }
+    },
   }
 }
 
@@ -132,20 +148,50 @@ a.highlighted {
 .nodisplay {
   display: none;
 }
-.title {
+h3.title {
+  margin-top: 0px;
   margin-bottom: 7px;
   color: primary-text;
   font-size: 18px;
+  font-weight: normal;
 }
+.group {
+  color: secondary-text;
+  padding: 8px 7px;
+  .col {
+    align-items: center;
+    display: flex;
+    flex: 1;
+  }
+  .row {
+    margin-top: 4px;
+    display: flex;
+    flex-direction: row;
+  }
+  input[type='text'],
+  input[type='number'] {
+    background: transparent;
+    color: primary-text;
+    border: 1px solid transparent;
+    padding: 7px;
+    font-size: 16px;
+    width: 100%;
+    margin-left: 7px;
+    &:focus {
+      outline-offset: 0;
+      outline: none;
+      border: 1px dashed;
+      background: #13294f;
+    }
+  }
+}
+
 .sidebar-content {
-  padding: 7px;
-  padding-top: 16px;
-  padding-bottom: 16px;
   top: 42px;
+  padding-top: 8px;
   position: absolute;
   width: 100%;
   background: #061838;
-
   transition: top, opacity;
   transition-duration: 0.3s;
   transition-timing-function: cubic-bezier(0.0,0.0,0.5,1);
@@ -226,9 +272,8 @@ a.share-btn {
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
   color: #eee;
   .input-row {
+    position: relative;
     display: flex;
-    flex-direction: row;
-    align-items: center;
     background: #182A4C;
     margin: 8px 0;
     caret-color: white;
@@ -236,10 +281,25 @@ a.share-btn {
       color: #658bbd;
     }
 
+    input.image-picker {
+      height: 32px;
+      width: 100%;
+      background: #182A4C;
+      border: none;
+      padding: 7px;
+      padding-right: 65px;
+      outline: none;
+      font-size: 14px;
+      color: #ccc;
+    }
+
     a.submit {
       padding: 5px 12px;
       border-left: 1px solid #658bbd;
       align-self: stretch;
+      position: absolute;
+      right: 0;
+      top: 0;
       color: #658bbd;
     }
   }
@@ -251,16 +311,6 @@ a.share-btn {
     border-bottom: 1px dashed white;
     color: white;
     cursor: pointer;
-  }
-  input.image-picker {
-    height: 32px;
-    width: 100%;
-    background: #182A4C;
-    border: none;
-    padding: 7px;
-    outline: none;
-    font-size: 14px;
-    color: #ccc;
   }
 }
 a.about-icon {
