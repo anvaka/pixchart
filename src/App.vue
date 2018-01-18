@@ -111,7 +111,10 @@ export default {
       sceneState.setAnimationDuration(newValue);
     },
     maxPixels(newValue) {
-      sceneState.setMaxPixels(newValue);
+      clearTimeout(this.pendingPixelUpdate);
+      this.pendingPixelUpdate = setTimeout(() => {
+        sceneState.setMaxPixels(newValue)
+      }, 300);
     }
   },
 
@@ -307,7 +310,7 @@ a.share-btn {
     }
 
     a.submit {
-      padding: 5px 12px;
+      padding: 6px 12px;
       align-self: stretch;
       position: absolute;
       opacity: 0;

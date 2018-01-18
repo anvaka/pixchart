@@ -34,7 +34,6 @@ function createTexture(gl, image) {
   return texture;
 }
 
-
 function createBuffer(gl, data) {
   var buffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);

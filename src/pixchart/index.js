@@ -12,7 +12,6 @@ module.exports = pixChart;
 function pixChart(imageLink, options) {
   // 'https://i.imgur.com/vOaDMFa.jpg'
 
-  // TODO: This needs to be more versatile
   var imageObject = typeof imageLink === 'string' ? urlImage(imageLink) : fileImage(imageLink);
 
   options = options || {};
@@ -53,28 +52,13 @@ function pixChart(imageLink, options) {
   // Image size can be different than scene size (e.g. image is smaller than screen)
   // Thus, we need to track them both.
   var imageWidth, imageHeight, minFrameSpan, maxFrameSpan, frameChangeRate;
-  var imgInfo, particleInfoBuffer;
+  var imgInfo, particleAttributesBuffer;
 
   var sceneWidth = canvas.clientWidth;
   var sceneHeight = canvas.clientHeight;
 
   var shaders = createShaders();
   var screenProgram = glUtils.createProgram(gl, shaders.vertexShader, shaders.fragmentShader);
-
-  loadImage(imageObject, {
-    scaleImage: options.scaleImage !== undefined ? options.scaleImage : true,
-    maxPixels: options.maxPixels
-  })
-    .then(updateProgressAndLoadParticles)
-    .then(initWebGLPrimitives)
-    // .then(fadeIn)
-    .then(startExpandCollapseCycle)
-    .catch(error => {
-      // TODO: this may not be necessary Image problem...
-      console.error('error', error);
-      progress.step = 'error'
-      notifyProgress();
-    });
 
   var api = {
     dispose,
@@ -85,14 +69,33 @@ function pixChart(imageLink, options) {
     setMaxPixels
   };
 
+  startAnimationPipeline();
+
   return api;
 
-  function setMaxPixels(maxPixels) {
+  function startAnimationPipeline() {
     loadImage(imageObject, {
       scaleImage: options.scaleImage !== undefined ? options.scaleImage : true,
-      maxPixels: maxPixels
+      maxPixels: options.maxPixels
+    })
+      .then(updateProgressAndLoadParticles)
+      .then(initWebGLPrimitives)
+      .then(startExpandCollapseCycle)
+      .catch(error => {
+        // TODO: this may not be necessary Image problem...
+        console.error('error', error);
+        progress.step = 'error'
+        notifyProgress();
+      });
+  }
+
+  function setMaxPixels(maxPixels) {
+
+    loadImage(imageObject, {
+      scaleImage: options.scaleImage !== undefined ? options.scaleImage : true,
+      maxPixels: maxPixels,
     }).then(updateProgressAndLoadParticles)
-    .then(initWebGLPrimitives);
+      .then(loadedImage => initWebGLPrimitives(loadedImage, /* keepCurrentFrame = */ true));
   }
 
   function updateProgressAndLoadParticles(image) {
@@ -101,17 +104,17 @@ function pixChart(imageLink, options) {
     notifyProgress();
 
     return loadParticles(image, particleLoaderSettings)
-      .then(stats => {
+      .then(particles => {
         progress.step = 'done';
         notifyProgress();
 
         return {
-          // Note: we are using stats.canvas here instead of image
+          // Note: we are using particles.canvas here instead of image
           // because on smaller devices (like a phone) large images
-          // can fail to load onto GPU (the texture is black). I'm not sure using
+          // can fail to load onto GPU (the texture is black). I'm not sure if using
           // canvas is going to have negative impact on quality. Need to keep an eye.
-          texture: glUtils.createTexture(gl, stats.canvas),
-          stats: stats,
+          texture: glUtils.createTexture(gl, particles.canvas),
+          particles: particles,
           width: image.width,
           height: image.height
         };
@@ -129,60 +132,51 @@ function pixChart(imageLink, options) {
      }
   }
 
-  function setSceneSize(width, height) {
-    canvas.width = width;
-    canvas.height = height;
-    sceneWidth = width;
-    sceneHeight = height;
-    requestAnimationFrame(refreshSize);
-  }
-
   function setFramesCount(newCount) {
     framesCount = Math.max(newCount, 1);
     frameChangeRate = (maxFrameSpan - minFrameSpan)/framesCount;
   }
 
-  function refreshSize() {
-    requestSizeUpdate = true;
-    gl.viewport(0, 0, sceneWidth, sceneHeight);
-    drawCurrentFrame();
+  function setSceneSize(width, height) {
+    canvas.width = width;
+    canvas.height = height;
+    sceneWidth = width;
+    sceneHeight = height;
+
+    requestAnimationFrame(() => {
+      requestSizeUpdate = true;
+      gl.viewport(0, 0, sceneWidth, sceneHeight);
+      drawCurrentFrame();
+    });
   }
 
-  function dispose() {
-    cancelAnimationFrame(nextAnimationFrame);
-    clearTimeout(pendingTimeout);
-
-    canvas.style.opacity = 0;
-    particleLoaderSettings.isCancelled = true;
-    nextAnimationFrame = 0;
-    pendingTimeout = 0;
-    disposed = true;
-  }
-
-  function initWebGLPrimitives(loadedImage) {
+  function initWebGLPrimitives(loadedImage, keepCurrentFrame) {
     if (disposed) return;
     canvas.style.opacity = 1;
 
+    releasePreviousWebGLResources();
+
     imgInfo = loadedImage
     imageWidth = imgInfo.width, imageHeight = imgInfo.height;
-    var stats = imgInfo.stats;
-    minFrameSpan = stats.minFrameSpan;
-    maxFrameSpan = stats.maxFrameSpan;
+    var particles = imgInfo.particles;
+    minFrameSpan = particles.minFrameSpan;
+    maxFrameSpan = particles.maxFrameSpan;
     frameChangeRate = (maxFrameSpan - minFrameSpan)/framesCount;
 
-    particleInfoBuffer = glUtils.createBuffer(gl, stats.particleInfo);
+    particleAttributesBuffer = glUtils.createBuffer(gl, particles.particleAttributes);
     // gl.enable(gl.BLEND);
     // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   
     gl.useProgram(screenProgram.program);  
     
-    glUtils.bindAttribute(gl, particleInfoBuffer, screenProgram.a_particle, 4);  
+    glUtils.bindAttribute(gl, particleAttributesBuffer, screenProgram.a_particle, 4);  
     glUtils.bindTexture(gl, imgInfo.texture, 2);
 
-    setInitialFrameNumber();
+    if (!keepCurrentFrame) setInitialFrameNumber();
+
     gl.uniform4f(screenProgram.u_frame, currentFrameNumber, minFrameSpan, maxFrameSpan, state);
 
-    gl.uniform1f(screenProgram.u_max_y_value, imgInfo.stats.maxYValue);
+    gl.uniform1f(screenProgram.u_max_y_value, particles.maxYValue);
     gl.uniform4f(screenProgram.u_sizes, imageWidth, imageHeight, sceneWidth, sceneHeight);
 
     gl.uniform1i(screenProgram.u_image, 2);
@@ -198,8 +192,6 @@ function pixChart(imageLink, options) {
 
   function drawCurrentFrame() {
     gl.useProgram(screenProgram.program); 
-    // glUtils.bindAttribute(gl, particleInfoBuffer, screenProgram.a_particle, 4);  
-    // glUtils.bindTexture(gl, imgInfo.texture, 2);
 
     if (requestSizeUpdate) {
       requestSizeUpdate = false;
@@ -239,36 +231,62 @@ function pixChart(imageLink, options) {
         completeState();
       }
     } else {
-        if (currentFrameNumber < maxFrameSpan ) {
-          currentFrameNumber += frameChangeRate;
-          if (currentFrameNumber < maxFrameSpan) currentFrameNumber += frameChangeRate;
-          nextAnimationFrame = requestAnimationFrame(animate);
-        } else {
-          state = ANIMATION_COLLAPSE;
-          completeState();
-        }
-      }
-    }
-
-    function setInitialFrameNumber() {
-      currentFrameNumber = minFrameSpan;
-    }
-
-    function completeState() {
-      setInitialFrameNumber();
-      if (state === initialState) {
-        // make a pause, let the clients re-trigger.
-        if (options.cycleComplete) {
-          options.cycleComplete();
-        }
+      if (currentFrameNumber < maxFrameSpan ) {
+        currentFrameNumber += frameChangeRate;
+        if (currentFrameNumber < maxFrameSpan) currentFrameNumber += frameChangeRate;
+        nextAnimationFrame = requestAnimationFrame(animate);
       } else {
-        // drive it back to original state
-        pendingTimeout = setTimeout(() => {
-          pendingTimeout = 0;
-          nextAnimationFrame = requestAnimationFrame(animate);
-        }, 1000);
+        state = ANIMATION_COLLAPSE;
+        completeState();
       }
     }
+  }
+
+  function setInitialFrameNumber() {
+    currentFrameNumber = minFrameSpan;
+  }
+
+  function completeState() {
+    setInitialFrameNumber();
+    if (state === initialState) {
+      // make a pause, let the clients re-trigger.
+      if (options.cycleComplete) {
+        options.cycleComplete();
+      }
+    } else {
+      // drive it back to original state
+      pendingTimeout = setTimeout(() => {
+        pendingTimeout = 0;
+        nextAnimationFrame = requestAnimationFrame(animate);
+      }, 1000);
+    }
+  }
+
+  function dispose() {
+    cancelAnimationFrame(nextAnimationFrame);
+    clearTimeout(pendingTimeout);
+    releasePreviousWebGLResources();
+    if (screenProgram) {
+      screenProgram.unload();
+    }
+
+    canvas.style.opacity = 0;
+    particleLoaderSettings.isCancelled = true;
+    nextAnimationFrame = 0;
+    pendingTimeout = 0;
+    disposed = true;
+  }
+
+  function releasePreviousWebGLResources() {
+    if (particleAttributesBuffer) {
+      gl.deleteBuffer(particleAttributesBuffer);
+      particleAttributesBuffer = null;
+    }
+    if (imgInfo) {
+      gl.deleteTexture(imgInfo.texture);
+      imgInfo = null;
+    }
+  }
 }
 
 // allows to load images from a url

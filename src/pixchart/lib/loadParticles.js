@@ -8,7 +8,7 @@ function loadParticles(image, options) {
   if (!options) throw new Error('Options required');
 
   var actualResolve;
-  var {framesCount, onProgress} = options;
+  var {onProgress} = options;
 
   var initIntervals = 0;
 
@@ -30,7 +30,7 @@ function loadParticles(image, options) {
   var minFrameSpan = Number.POSITIVE_INFINITY, maxFrameSpan = Number.NEGATIVE_INFINITY;
 
   // each pixel is mapped to height inside its bucket;
-  var particleInfo = new Float32Array(4 * n);
+  var particleAttributes = new Float32Array(4 * n);
 
   // this is a temporary tracker of taken spots inside a bucket
   var bucketColors = new Uint32Array(bucketsCount);
@@ -77,19 +77,21 @@ function loadParticles(image, options) {
 
       currentYValue = bucketColors[bucketNumber] += 1;
       // assign this pixel to this height in the bucket
+      // Note: if we want to be less jumpy during changes in particles count,
+      // we can augment this code with previous particle configuration.
       var frameSpan = random.gaussian();
 
-      particleInfo[idx + 0] = v;
-      particleInfo[idx + 1] = currentYValue - 1;
-      particleInfo[idx + 2] = frameSpan;
-      particleInfo[idx + 3] = invIndex/4;
+      particleAttributes[idx + 0] = v;
+      particleAttributes[idx + 1] = currentYValue - 1;
+      particleAttributes[idx + 2] = frameSpan;
+      particleAttributes[idx + 3] = invIndex/4;
 
       if (frameSpan < minFrameSpan) minFrameSpan = frameSpan;
       if (frameSpan > maxFrameSpan) maxFrameSpan = frameSpan;
 
       // if (v <= 0.09) { 
       //   // TODO: Proper ignore logic here.
-      //   particleInfo[idx] = -1;
+      //   particleAttributes[idx] = -1;
       // } else  
       if (currentYValue > maxYValue) maxYValue = currentYValue;
 
@@ -106,7 +108,7 @@ function loadParticles(image, options) {
     actualResolve({
       minFrameSpan,
       maxFrameSpan,
-      particleInfo: particleInfo,
+      particleAttributes: particleAttributes,
       canvas: cnv,
       maxYValue: maxYValue
     })

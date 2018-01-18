@@ -40,7 +40,7 @@ function initScene(canvas) {
     sidebarOpen: !config.isSmallScreen(),
     qs,
     duration: DEFAULT_ANIMATION_DURATION,
-    maxPixels: 640 * 640,
+    maxPixels: Math.min(window.innerWidth * window.innerHeight, 640 * 640),
 
     updateSize,
 
@@ -115,7 +115,6 @@ function initScene(canvas) {
       progressElement.innerText = 'Processed ' + format(progress.current) + ' pixels out of ' + format(progress.total);
     } else if (progress.step === 'done') {
       progressElement.style.opacity = '0';
-      progressElement.innerText = 'Loading image...';
       if (progress.imageObject.isUrl) {
         // other objects cannot be shared
         qs.set('link', progress.imageObject.name)
@@ -202,8 +201,13 @@ function initScene(canvas) {
     var maxPixels = Number.parseInt(newCount, 10)
     if (Number.isNaN(maxPixels)) return;
 
-    // TODO: Ask pixchart to do it.
-    if (currentPixChart) currentPixChart.setMaxPixels(maxPixels);
+    state.maxPixels = maxPixels;
+
+    if (currentPixChart) {
+      progressElement.style.innerText = 'Updating particles...';
+      progressElement.style.opacity = '1';
+      currentPixChart.setMaxPixels(maxPixels);
+    }
   }
 
   function toFrames(seconds) {
