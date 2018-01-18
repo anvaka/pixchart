@@ -11,102 +11,28 @@
     <meta name="author" content="Andrei Kashcha">
     <title>Pixel Chart</title>
     <style>
-canvas {
-  position: absolute;
-  left: 400px;
-  top: 0;
-  opacity: 0;
-  transition: left 200ms, top 200ms, opacity 300ms ease-in-out;
-}
-
-@keyframes pulse-out {
-    from { opacity: 1; }
-    to { opacity: 0; }
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  background: #13294F;
-  overflow: hidden;
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  left: 0;
-  top: 0;
-
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-body.drag-over .drop-help{
-  display: flex;
-}
-
-body.sidebar-closed canvas {
-  left: 0;
-}
-
-#progress {
-  transition: opacity 200ms ease-in-out;
-  animation: blink 1500ms ease-in-out infinite alternate;
-  position: absolute;
-  top: 42px;
-  left: 0;
-  width: 392px;
-  font-size: 12px;
-  color: #eee;
-  opacity: 0;
-  z-index: 2;
-  text-align: center;
-  background: rgba(0, 0, 0, 0.22);
-  box-shadow: -1px 1px 4px rgba(0,0,0,0.8);
-}
-
-@keyframes blink {
-    from { background: rgba(0, 0, 0, 0.22); }
-    to { background: rgba(19, 41, 79, 0.7); }
-}
-
-#progress.error {
-  color: #6fbf0d;
-}
-#progress.error a {
-  color: white;
-  border-bottom: 1px dashed;
-}
-
-.drop-help {
-  position: fixed;
-  display: none;
-  justify-content: center;
-  background: rgba(19, 41, 79, 0.8);
-  color: white;
-  align-items: center;
-  z-index: 3;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-@media (max-width: 800px) {
-  canvas {
-    left: 0%;
-    top: 42px;
-  }
-  #progress {
-    width: 100%;
-  }
-}
-* {
-  box-sizing: border-box;
-}
+.zodiac { background: #13294F}
+.bunting { background: #24354E}
+.east-bay { background: #475770}
+.carolina-blue { background: #9ABDDE}
+.hippie-blue { background: #51A2A7}
+.wood-bark { background: #312321}
+.white { background: #ffffff}
+.white-lilac { background: #E7E7E7}
+.dark-gray { background: #a8a8a8}
+.charcoal { background: #404040}
+.black20 { background: #212121}
+.black { background: #000000}
+.casablanka { background: #F2AD52}
+.pink { background: #E99E9B}
+.flamingo { background: #EC694D}
+.maroon { background: #BF3558}
+.rose-ebony { background: #664948}
+.espresso { background: #642B1C}
+.drop-help { display: none;}
     </style>
   </head>
-  <body>
+  <body class='zodiac'>
     <canvas id='scene'></canvas>
     <div id='progress'></div>
     <div id="app"></div>
@@ -115,6 +41,17 @@ body.sidebar-closed canvas {
       <h2>Drop files here</h2>
     </div>
 <script>
+  (function (){
+    // need to set theme here to avoid flickering of the color
+    var themeName = window.location.search.match(/\?.*theme=([^&]+)/);
+    if (!themeName) return; // default theme is fine
+    // Need to consult with the whitelist, to avoid "css injection"
+    var knownThemes = new Set(["zodiac","bunting","east-bay","carolina-blue","hippie-blue","wood-bark","white","white-lilac","dark-gray","charcoal","black20","black","casablanka","pink","flamingo","maroon","rose-ebony","espresso"])
+    if (knownThemes.has(themeName[1])) {
+      document.body.classList.remove('zodiac');
+      document.body.classList.add(themeName[1]);
+    }
+  })();
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
   m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)

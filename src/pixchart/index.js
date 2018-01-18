@@ -48,7 +48,6 @@ function pixChart(imageLink, options) {
     step: 'image',
   };
 
-  var scaleImage = options.scaleImage !== undefined ? options.scaleImage : true;
   var requestSizeUpdate = false;
 
   // Image size can be different than scene size (e.g. image is smaller than screen)
@@ -62,7 +61,10 @@ function pixChart(imageLink, options) {
   var shaders = createShaders();
   var screenProgram = glUtils.createProgram(gl, shaders.vertexShader, shaders.fragmentShader);
 
-  loadImage(imageObject, scaleImage)
+  loadImage(imageObject, {
+    scaleImage: options.scaleImage !== undefined ? options.scaleImage : true,
+    maxPixels: options.maxPixels
+  })
     .then(updateProgressAndLoadParticles)
     .then(initWebGLPrimitives)
     // .then(fadeIn)
@@ -79,10 +81,19 @@ function pixChart(imageLink, options) {
     imageLink,
     restartCycle: startExpandCollapseCycle,
     setSceneSize: setSceneSize,
-    setFramesCount
+    setFramesCount,
+    setMaxPixels
   };
 
   return api;
+
+  function setMaxPixels(maxPixels) {
+    loadImage(imageObject, {
+      scaleImage: options.scaleImage !== undefined ? options.scaleImage : true,
+      maxPixels: maxPixels
+    }).then(updateProgressAndLoadParticles)
+    .then(initWebGLPrimitives);
+  }
 
   function updateProgressAndLoadParticles(image) {
     progress.total = image.width * image.height;

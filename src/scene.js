@@ -2,6 +2,7 @@ var queryState = require('query-state');
 var pixChart = require('./pixchart/index');
 var config = require('./config.js');
 var createFileDropHandler = require('./lib/fileDrop');
+var bus = require('./bus');
 
 var DEFAULT_ANIMATION_DURATION = 2.7; // in seconds, because visible to users
 var PAUSE_BETWEEN_CYCLES = 1000; // in milliseconds, because for developers
@@ -28,6 +29,7 @@ function initScene(canvas) {
 
   window.addEventListener('paste', handlePaste, false);
   window.addEventListener('resize', updateSize);
+  bus.on('theme-changed', updateTheme);
 
   var dropHandler = createFileDropHandler(document.body, handleDroppedFiles);
 
@@ -38,13 +40,15 @@ function initScene(canvas) {
     sidebarOpen: !config.isSmallScreen(),
     qs,
     duration: DEFAULT_ANIMATION_DURATION,
+    maxPixels: 640 * 640,
 
     updateSize,
 
     dispose,
     
     setImages,
-    setAnimationDuration
+    setAnimationDuration,
+    setMaxPixels
   };
 
   setAnimationDuration(qs.get('d'));
@@ -86,6 +90,7 @@ function initScene(canvas) {
     }
     window.removeEventListener('resize', updateSize);
     window.removeEventListener('paste', handlePaste, false);
+    bus.off('theme-changed', updateTheme)
 
     dropHandler.dispose();
 
@@ -99,6 +104,10 @@ function initScene(canvas) {
       var sideBarHeightOffset = config.isSmallScreen() ? config.sidebarHeight : 0;
       currentPixChart.setSceneSize(window.innerWidth - sideBarWidthOffset, window.innerHeight - sideBarHeightOffset);
     }
+  }
+
+  function updateTheme(newTheme) {
+    qs.set('theme', newTheme);
   }
 
   function showLoadingProgress(progress) {
@@ -159,6 +168,7 @@ function initScene(canvas) {
     currentPixChart = pixChart(imageLink, {
       canvas,
       scaleImage: true,
+      maxPixels: state.maxPixels,
       framesCount: toFrames(state.duration),
       progress: showLoadingProgress,
       cycleComplete: () => {
@@ -186,6 +196,14 @@ function initScene(canvas) {
     if (currentPixChart) {
       currentPixChart.setFramesCount(toFrames(seconds));
     }
+  }
+
+  function setMaxPixels(newCount) {
+    var maxPixels = Number.parseInt(newCount, 10)
+    if (Number.isNaN(maxPixels)) return;
+
+    // TODO: Ask pixchart to do it.
+    if (currentPixChart) currentPixChart.setMaxPixels(maxPixels);
   }
 
   function toFrames(seconds) {

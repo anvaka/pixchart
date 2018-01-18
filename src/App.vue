@@ -9,16 +9,16 @@
       </p>
       </div>
     </div>
-  <div class='settings-dialog' v-if='webGLEnabled' :class='{"collapsed": !scene.sidebarOpen}'>
-    <div class='sidebar-buttons'>
+  <div class='settings-dialog darker-background' v-if='webGLEnabled' :class='{"collapsed": !scene.sidebarOpen}'>
+    <div class='sidebar-buttons darker-background'>
       <a class='about-icon' href='#' @click.prevent='aboutVisible = !aboutVisible' title='click to learn more about this website'>
-        <svg width='22px' height='32px' viewBox="0 0 512 512">
-  <path fill="#658bbd" d="M256 21C126.426 21 21 126.426 21 256s105.426 235 235 235 235-105.426 235-235S385.574 21 256 21zm0 36c110.118 0 199 88.882 199 199s-88.882 199-199 199S57 366.118 57 256 145.882 57 256 57zm-7.352 36.744c-8.227 0-15.317 2.976-21.27 8.928-5.776 5.952-8.665 12.955-8.665 21.008 0 8.227 2.89 15.23 8.666 21.006 5.95 5.776 13.04 8.666 21.268 8.666 8.228 0 15.23-2.89 21.006-8.666 5.777-5.777 8.666-12.78 8.666-21.006 0-8.053-2.976-15.056-8.927-21.008-5.777-5.952-12.692-8.928-20.745-8.928zm-62.757 82.453v28.096h46.215v186.13H185.89v27.833h140.22v-27.834h-45.69V176.197h-94.53z"/>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="18" height="18" viewBox="0 0 12 14">
+<path d="M6.875 9.375v1.25q0 0.109-0.070 0.18t-0.18 0.070h-1.25q-0.109 0-0.18-0.070t-0.070-0.18v-1.25q0-0.109 0.070-0.18t0.18-0.070h1.25q0.109 0 0.18 0.070t0.070 0.18zM8.875 5.5q0 0.391-0.117 0.703t-0.355 0.539-0.406 0.344-0.465 0.281q-0.25 0.141-0.363 0.219t-0.203 0.187-0.090 0.227v0.25q0 0.109-0.070 0.18t-0.18 0.070h-1.25q-0.109 0-0.18-0.070t-0.070-0.18v-0.531q0-0.273 0.082-0.504t0.187-0.371 0.305-0.277 0.32-0.199 0.348-0.164q0.414-0.195 0.586-0.336t0.172-0.383q0-0.328-0.34-0.559t-0.746-0.23q-0.438 0-0.742 0.211-0.227 0.156-0.625 0.648-0.070 0.094-0.195 0.094-0.086 0-0.148-0.047l-0.844-0.641q-0.078-0.055-0.094-0.156t0.039-0.18q0.953-1.5 2.727-1.5 1.008 0 1.863 0.699t0.855 1.676zM6 2q-1.016 0-1.941 0.398t-1.594 1.066-1.066 1.594-0.398 1.941 0.398 1.941 1.066 1.594 1.594 1.066 1.941 0.398 1.941-0.398 1.594-1.066 1.066-1.594 0.398-1.941-0.398-1.941-1.066-1.594-1.594-1.066-1.941-0.398zM12 7q0 1.633-0.805 3.012t-2.184 2.184-3.012 0.805-3.012-0.805-2.184-2.184-0.805-3.012 0.805-3.012 2.184-2.184 3.012-0.805 3.012 0.805 2.184 2.184 0.805 3.012z"></path>
 </svg>
 
       </a>
-      <a href='#' @click.prevent='selectRandomImage' class='try-random'>try random image</a>
-      <a href='#' @click.prevent='scene.sidebarOpen = !scene.sidebarOpen'>{{scene.sidebarOpen ? 'hide sidebar' : 'advanced'}}</a>
+      <a href='#' @click.prevent='selectRandomImage' class='try-random'>Try random image</a>
+      <a href='#' @click.prevent='scene.sidebarOpen = !scene.sidebarOpen' class='toggle-sidebar'>{{scene.sidebarOpen ? 'Hide options' : 'Advanced'}}</a>
  <a href='#' @click.prevent='openShareDialog' class='share-btn' title='Share'>
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="18" height="18" viewBox="0 0 12 14">
 <path d="M9.5 8q1.039 0 1.77 0.73t0.73 1.77-0.73 1.77-1.77 0.73-1.77-0.73-0.73-1.77q0-0.094 0.016-0.266l-2.812-1.406q-0.719 0.672-1.703 0.672-1.039 0-1.77-0.73t-0.73-1.77 0.73-1.77 1.77-0.73q0.984 0 1.703 0.672l2.812-1.406q-0.016-0.172-0.016-0.266 0-1.039 0.73-1.77t1.77-0.73 1.77 0.73 0.73 1.77-0.73 1.77-1.77 0.73q-0.984 0-1.703-0.672l-2.812 1.406q0.016 0.172 0.016 0.266t-0.016 0.266l2.812 1.406q0.719-0.672 1.703-0.672z"></path>
@@ -26,12 +26,13 @@
 </a>
     </div>
 
-  <div class='sidebar-content'>
-    <div class='group'>
+  <div class='sidebar-content darker-background'>
+    <div class='group secondary-text'>
       <h3 class='title'>Image</h3>
-      <div class='help-text'><label class='browse-btn' for="local-files-button">Pick a file</label> from your device or paste image below</div>
-      <form class='input-row' @submit.prevent='onSubmit'>
-        <input class='image-picker' type="text" placeholder="Paste image link here" v-model='scene.image'
+      <div class='help-text secondary-color'>Paste image below or <label class='browse-btn primary-text' for="local-files-button">pick a file from your device</label></div>
+      <form class='input-row' @submit.prevent='onSubmit' :class='{"focused": inputSelected}'>
+        <input class='image-picker primmary-background' type="text" placeholder="Paste image here" 
+          v-model='scene.image'
           autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
           @focus='onInputFocused' @blur='inputSelected = false'>
         <a href="#" @click.prevent='onSubmit' class='submit'>Go</a>
@@ -39,17 +40,28 @@
       <input type='file' id='local-files-button' class='nodisplay' name="files[]" multiple="" accept="image/*" @change='onFilePickerChanged'>
     </div>
 
-    <div class='group separate'>
+    <div class='group secondary-text'>
       <h3 class='title'>Animation</h3>
       <div class='row'>
         <div class='col'>Duration (in seconds)</div>
-        <div class='col'><input type='number' step='0.1' min='0' v-model='duration' @keyup.enter='onSubmitAnimation' autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
+        <div class='col'><input type='number' step='0.1' min='0' v-model='duration' autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
+      </div>
+      <div class='row'>
+        <div class='col'>Max pixels count</div>
+        <div class='col'><input type='number' step='100' min='2' v-model='maxPixels' autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
+      </div>
+      <div class="row">
+        <div class="col">Background</div>
+        <div class="col themes">
+          <a href='#' v-for='theme in themes' @click.prevent='selectTheme(theme)' class='theme-picker' :style='{"background-color": theme.color}' :title='theme.name'>
+          </a>
+        </div>
       </div>
     </div>
 
     </div>
     <a class='hide-button' href='#' @click.prevent='scene.sidebarOpen = !scene.sidebarOpen'>
-      <svg> <path d='M10,10 L5,5 L10,0z' fill='white'></path> </svg>
+      <svg> <path d='M10,10 L5,5 L10,0z'></path> </svg>
     </a>
   </div>
   <about @close='aboutVisible = false' v-if='aboutVisible'></about>
@@ -63,8 +75,10 @@ import Share from './components/Share';
 import bus from './bus';
 import createRandomImagePicker from './randomImagePicker';
 import config from './config';
+import createThemeManager from './lib/themeManager';
 
 var sceneState = window.sceneState;
+var themeManager = createThemeManager();
 var randomImagePicker = createRandomImagePicker();
 
 export default {
@@ -83,7 +97,9 @@ export default {
       scene: sceneState,
       inputSelected: false,
       aboutVisible: false,
-      duration: sceneState.duration
+      duration: sceneState.duration,
+      maxPixels: sceneState.maxPixels,
+      themes: themeManager.themes
     }
   },
   watch: {
@@ -93,6 +109,9 @@ export default {
     },
     duration(newValue) {
       sceneState.setAnimationDuration(newValue);
+    },
+    maxPixels(newValue) {
+      sceneState.setMaxPixels(newValue);
     }
   },
 
@@ -101,9 +120,6 @@ export default {
       sceneState.setImages([this.scene.image]);
 
       if (config.isSmallScreen()) this.scene.sidebarOpen = false;
-    },
-    onSubmitAnimation() {
-      console.log('TODO: implement me')
     },
     onInputFocused(e) {
       e.target.select();
@@ -125,6 +141,9 @@ export default {
         sceneState.setImages([imageUrl]);
       })
     },
+    selectTheme(theme) {
+      themeManager.setTheme(theme.name);
+    }
   }
 }
 
@@ -135,15 +154,22 @@ function ensureBodyHasSidebarStyle() {
 </script>
 
 <style lang='stylus'>
+@import './styles/app.styl';
 @import './shared.styl';
 
+.themes {
+  flex-wrap: wrap;
+  flex-direction: row;
+}
+.theme-picker {
+  width: 28px;
+  height: 28px;
+}
 a {
-  color: primary-text;
   text-decoration: none;
 }
 a.highlighted {
-  color: white;
-  border-bottom: 1px dashed white;
+  border-bottom: 1px dashed;
 }
 .nodisplay {
   display: none;
@@ -151,12 +177,10 @@ a.highlighted {
 h3.title {
   margin-top: 0px;
   margin-bottom: 7px;
-  color: primary-text;
-  font-size: 18px;
+  font-size: 21px;
   font-weight: normal;
 }
 .group {
-  color: secondary-text;
   padding: 8px 7px;
   .col {
     align-items: center;
@@ -181,23 +205,25 @@ h3.title {
       outline-offset: 0;
       outline: none;
       border: 1px dashed;
-      background: #13294f;
     }
   }
 }
 
+.sidebar-buttons a.toggle-sidebar {
+  display: none;
+}
+
 .sidebar-content {
   top: 42px;
+  font-size: 14px;
   padding-top: 8px;
   position: absolute;
   width: 100%;
-  background: #061838;
   transition: top, opacity;
   transition-duration: 0.3s;
   transition-timing-function: cubic-bezier(0.0,0.0,0.5,1);
 }
 .help-text {
-  color: help-text-color;
   font-size: 12px;
   font-style: italic;
 
@@ -213,13 +239,10 @@ a::selection, div::selection, h3::selection, h4::selection, p::selection, input:
   flex-shrink: 0;
   height: control-bar-height;
   width: 100%;
-  background-color: window-background;
   a {
     padding: 8px;
     display: flex;
     flex: 1;
-    border-right: 1px solid secondary-text;
-    border-bottom: 1px solid secondary-text;
     justify-content: center;
     align-items: center;
   }
@@ -229,7 +252,7 @@ a::selection, div::selection, h3::selection, h4::selection, p::selection, input:
 }
 .hide-button {
   position: absolute;
-  height: control-bar-height;
+  height: control-bar-height - 1;
   top: 0;
   right: -23px;
   width: 23px;
@@ -244,9 +267,6 @@ a::selection, div::selection, h3::selection, h4::selection, p::selection, input:
 }
 a.share-btn {
   display: none;
-  svg {
-    fill: #658bbd;
-  }
 }
 .sidebar-closed {
   .hide-button {
@@ -268,49 +288,45 @@ a.share-btn {
   position: absolute;
   display: flex;
   flex-direction: column;
-  background-color: #061838;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-  color: #eee;
   .input-row {
     position: relative;
     display: flex;
-    background: #182A4C;
+    background: transparent;
     margin: 8px 0;
     caret-color: white;
-    ::placeholder{
-      color: #658bbd;
-    }
 
     input.image-picker {
       height: 32px;
       width: 100%;
-      background: #182A4C;
-      border: none;
       padding: 7px;
       padding-right: 65px;
       outline: none;
       font-size: 14px;
-      color: #ccc;
+      margin-left: 0;
     }
 
     a.submit {
       padding: 5px 12px;
-      border-left: 1px solid #658bbd;
       align-self: stretch;
       position: absolute;
+      opacity: 0;
       right: 0;
       top: 0;
-      color: #658bbd;
+      transition: opacity 500ms;
+    }
+    &.focused {
+      a.submit{
+        opacity: 1
+      }
     }
   }
   .file-picker {
     padding-top: 12px;
-    color: #ccc;
   }
   .browse-btn {
-    border-bottom: 1px dashed white;
-    color: white;
     cursor: pointer;
+    font-weight: bold;
   }
 }
 a.about-icon {
@@ -332,12 +348,6 @@ a.about-icon {
 .image-buttons {
   display: flex;
   justify-content: space-between;
-}
-.center {
-    text-align: center;
-    color: #658bbd;
-    font-size: 17px;
-    padding-bottom: 8px;
 }
 
 @media (min-width: small-screen + 1) {
@@ -362,11 +372,14 @@ a.about-icon {
        a:last-child {
          border-right: none;
       }
+      .toggle-sidebar {
+        display: flex;
+      }
     }
   }
   .settings-dialog.collapsed {
     .sidebar-content {
-      top: -250px;
+      top: -350px;
     }
   }
 }

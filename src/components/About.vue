@@ -1,7 +1,7 @@
 <template>
   <div class='about'>
     <div class='background absolute' @click.prevent='close'></div>
-    <div class='content'>
+    <div class='content darker-background secondary-text secondary-border'>
       <h3>Pixel Chart <a class='close bold' href='#' @click.prevent='close'>close</a></h3>
       <p>
         This website allows you to take any picture and split it into thousands particles.
@@ -60,7 +60,6 @@ export default {
   height: 100%;
   display: flex;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.7);
   align-items: flex-start;
   .close {
     position: absolute;
@@ -70,25 +69,25 @@ export default {
   .large-close {
     width: 100%;
     height: 32px;
+    font-size: 12px;
     display: block;
     text-align: center;
   }
   .content {
-    color: secondary-text;
     position: relative;
-    background: window-background;
     width: 400px;
     padding: 14px;
-    border: 1px solid primary-border;
+    border: 1px solid;
     h3 {
       margin: 0;
       font-weight: normal;
+      font-size: 18px;
     }
   }
 }
 .background {
   position: absolute;
-  background-color: hsla(215, 74%, 18%, 0.8);
+  background: rgba(0, 0, 0, 0.7);
   top: 0;
   left: 0;
   width: 100%;

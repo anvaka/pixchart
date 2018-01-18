@@ -1,7 +1,10 @@
 module.exports = loadImage;
 
-function loadImage(imageObject, scaleImage) {
+function loadImage(imageObject, options) {
+  options = options || {};
   var resolveImage, rejectImage;
+  var scaleImage = options.scaleImage;
+  var maxPixels = options.maxPixels || 640 * 640;
 
   var image = new Image();
   image.crossOrigin = '';
@@ -24,18 +27,6 @@ function loadImage(imageObject, scaleImage) {
 
   function scale(image) {
     // scaling image may change/distort colors.
-    // todo: remove dependency on window?
-    var sx = window.innerWidth/image.width;
-    var sy = window.innerHeight/image.height;
-    if (sx < sy) {
-      image.width *= Math.min(sx, 2);
-      image.height *= Math.min(sx, 2);
-    } else {
-      image.width *= Math.min(sy, 2);
-      image.height *= Math.min(sy, 2);
-    }
-
-    var maxPixels = 400000;
     var ar = image.width/image.height;
     var h0 = Math.sqrt(maxPixels * ar);
     var w0 = maxPixels / h0;
