@@ -76,7 +76,7 @@ void main() {
   float timeSpan = a_particle.z;
   float frameRatio = (timeSpan - u_frame[1])/(u_frame[2] - u_frame[1]);
   float t0 = clamp((u_frame[0] - u_frame[1])/(u_frame[2] - u_frame[1])/frameRatio, 0., 1.);
- // float t = ease(t0);
+  //float t = ease(t0);
   float t = bease(t0, vec2(0., 0.19), vec2(0.61, 1)); // easeInOutCubic
 
   // if (a_particle.x < 0.) {
@@ -87,10 +87,10 @@ void main() {
   //   //v_color = vec4(1.0, 0., 0., 1.);
   // }
 
-//  t = bease(t0, vec2(0.68, -0.55), vec2(0.265, 1.55)); // easeInOutBack
-   // t = bease(t0, vec2(0.5, 0.5), vec2(0.5, 0.5)); // linear
- //t = bease(t0, vec2(0.19, 1), vec2(0.22, 1)); // easeOutExpo
-  //t = bease(t0, vec2(1, 0.), vec2(0., 1)); // easeOutExpo
+  //t = bease(t0, vec2(0.68, -0.55), vec2(0.265, 1.55)); // easeInOutBack
+  //t = bease(t0, vec2(0.5, 0.5), vec2(0.5, 0.5)); // linear
+  //t = bease(t0, vec2(0.19, 1), vec2(0.22, 1)); // easeOutExpo
+  t = bease(t0, vec2(1, 0.), vec2(0., 1)); // easeOutExpo
  
   float tmin = 1. - t;
   vec2 dest = u_frame[3] == 2. ? tmin * target + t * source : tmin * source + t * target;

@@ -4,7 +4,7 @@ var config = require('./config.js');
 var createFileDropHandler = require('./lib/fileDrop');
 var bus = require('./bus');
 
-var DEFAULT_ANIMATION_DURATION = 2.7; // in seconds, because visible to users
+var DEFAULT_ANIMATION_DURATION = 3.14; // in seconds, because visible to users
 var PAUSE_BETWEEN_CYCLES = 1000; // in milliseconds, because for developers
 
 var qs = queryState({
@@ -44,6 +44,7 @@ function initScene(canvas) {
     duration: DEFAULT_ANIMATION_DURATION,
     maxPixels: Math.min(window.innerWidth * window.innerHeight, 640 * 640),
     currentColorGroupBy: getSafeColorGroupBy(qs.get('groupBy')), 
+    initialImageState: getSafeInitialState(qs.get('initial')),
 
     updateSize,
 
@@ -52,13 +53,26 @@ function initScene(canvas) {
     setImages,
     setAnimationDuration,
     setMaxPixels,
-    setColorGroupBy
+    setColorGroupBy,
+    setInitialState,
   };
 
   setAnimationDuration(qs.get('d'));
 
   window.sceneState = state;
   return;
+
+  function setInitialState(newInitialState) {
+    state.initialImageState = newInitialState;
+    qs.set('initial', newInitialState);
+
+    restartCurrentAnimation();
+  }
+
+  function getSafeInitialState(plainInput) {
+    if (plainInput === 'expanded') return plainInput
+    return 'collapsed';
+  }
 
   function getSafeColorGroupBy(plainInput) {
     if (validColorGroups.has(plainInput)) return plainInput;
@@ -71,6 +85,10 @@ function initScene(canvas) {
     state.currentColorGroupBy = safeGroupBy;
     qs.set('groupBy', state.currentColorGroupBy);
 
+    restartCurrentAnimation();
+  }
+
+  function restartCurrentAnimation() {
     if (!queue) return;
 
     // TODO: Validate?
@@ -191,6 +209,7 @@ function initScene(canvas) {
       canvas,
       colorGroupBy: state.currentColorGroupBy,
       scaleImage: true,
+      collapsed: state.initialImageState === 'collapsed',
       maxPixels: state.maxPixels,
       framesCount: toFrames(state.duration),
     });

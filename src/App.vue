@@ -43,20 +43,29 @@
     <div class='group secondary-text'>
       <h3 class='title'>Animation</h3>
       <div class='row'>
-        <div class='col'>Group Color By</div>
+        <div class='col'>Initial state</div>
         <div class='col'>
-          <select v-model='possibleGroupBys.selected' @change='changeColor'>
-            <option v-for='groupBy in possibleGroupBys.options' :value='groupBy.value'>{{groupBy.text}}</option>
+          <select v-model='initialImageState' @change='changeInitialState'>
+            <option value='expanded'>Full Image</option>
+            <option value='collapsed'>Image chart</option>
 	        </select>
         </div>
       </div>
       <div class='row'>
         <div class='col'>Duration (in seconds)</div>
-        <div class='col'><input type='number' step='0.1' min='0' @keyup.enter='closeForm' v-model='duration' autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
+        <div class='col'><input type='number' step="any" min='0' @keyup.enter='closeForm' v-model='duration' autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
       </div>
       <div class='row'>
         <div class='col'>Max pixels count</div>
         <div class='col'><input type='number' step='100' min='2' @keyup.enter='closeForm' v-model='maxPixels' autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
+      </div>
+      <div class='row'>
+        <div class='col'>Group colors by</div>
+        <div class='col'>
+          <select v-model='possibleGroupBys.selected' @change='changeColor'>
+            <option v-for='groupBy in possibleGroupBys.options' :value='groupBy.value'>{{groupBy.text}}</option>
+	        </select>
+        </div>
       </div>
       <div class="row">
         <div class="col">Background</div>
@@ -110,6 +119,7 @@ export default {
       maxPixels: sceneState.maxPixels,
       themes: themeManager.themes,
       selectedTheme: themeManager.getSelected(),
+      initialImageState: sceneState.initialImageState,
       possibleGroupBys: {
         selected: sceneState.currentColorGroupBy,
         options: [{
@@ -184,8 +194,12 @@ export default {
       this.selectedTheme = themeManager.getSelected();
     },
 
-    changeColor(v) {
+    changeColor() {
       sceneState.setColorGroupBy(this.possibleGroupBys.selected);
+      hideIfNeeded();
+    },
+    changeInitialState() {
+      sceneState.setInitialState(this.initialImageState);
       hideIfNeeded();
     }
   }
@@ -234,6 +248,7 @@ h3.title {
     margin-top: 4px;
     display: flex;
     flex-direction: row;
+    height: 32px;
   }
   input[type='text'],
   input[type='number'] {

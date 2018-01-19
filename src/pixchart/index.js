@@ -24,7 +24,8 @@ function pixChart(imageLink, options) {
     throw new Error('WebGL is not available');
   }
 
-  var initialState = ANIMATION_COLLAPSE;
+  // When initial state collapsed, we want to start expanding, and vice versa.
+  var initialState = options.collapsed ? ANIMATION_EXPAND : ANIMATION_COLLAPSE;
   var state = initialState;
 
   var nextAnimationFrame, pendingTimeout;
@@ -235,8 +236,6 @@ function pixChart(imageLink, options) {
   function scheduleNextFrame() {
     // TODO: Simplify this code. It's remnant of older loop.
     // We want to pause when collapse or expand phase has finished.
-    // We also want the expand phase to be a tiny bit faster than
-    // collapse phase.
     if (state === ANIMATION_COLLAPSE) {
       if (currentFrameNumber < maxFrameSpan) {
         currentFrameNumber += frameChangeRate;
@@ -248,7 +247,6 @@ function pixChart(imageLink, options) {
     } else {
       if (currentFrameNumber < maxFrameSpan ) {
         currentFrameNumber += frameChangeRate;
-        if (currentFrameNumber < maxFrameSpan) currentFrameNumber += frameChangeRate;
         nextAnimationFrame = requestAnimationFrame(animate);
       } else {
         state = ANIMATION_COLLAPSE;
