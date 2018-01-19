@@ -1,4 +1,3 @@
-var chroma = require('chroma-js');
 var {rgbToHsl} = require('./colors');
 var random = require('ngraph.random')(42);
 

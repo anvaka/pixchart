@@ -52,11 +52,11 @@
       </div>
       <div class='row'>
         <div class='col'>Duration (in seconds)</div>
-        <div class='col'><input type='number' step='0.1' min='0' v-model='duration' autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
+        <div class='col'><input type='number' step='0.1' min='0' @keyup.enter='closeForm' v-model='duration' autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
       </div>
       <div class='row'>
         <div class='col'>Max pixels count</div>
-        <div class='col'><input type='number' step='100' min='2' v-model='maxPixels' autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
+        <div class='col'><input type='number' step='100' min='2' @keyup.enter='closeForm' v-model='maxPixels' autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
       </div>
       <div class="row">
         <div class="col">Background</div>
@@ -151,10 +151,12 @@ export default {
   },
 
   methods: {
+    closeForm() {
+      hideIfNeeded();
+    },
     onSubmit() {
       sceneState.setImages([this.scene.image]);
-
-      if (config.isSmallScreen()) this.scene.sidebarOpen = false;
+      hideIfNeeded();
     },
     onInputFocused(e) {
       e.target.select();
@@ -166,7 +168,7 @@ export default {
       // Try to reset the type
       e.target.type = 'input';
       e.target.type = 'file';
-      if (config.isSmallScreen()) this.scene.sidebarOpen = false;
+      hideIfNeeded();
     },
     openShareDialog() {
       bus.fire('open-share-dialog');
@@ -174,16 +176,24 @@ export default {
     selectRandomImage() {
       randomImagePicker.select().then((imageUrl) => {
         sceneState.setImages([imageUrl]);
-      })
+      });
+      hideIfNeeded();
     },
     selectTheme(theme) {
       themeManager.setTheme(theme.name);
       this.selectedTheme = themeManager.getSelected();
     },
+
     changeColor(v) {
       sceneState.setColorGroupBy(this.possibleGroupBys.selected);
+      hideIfNeeded();
     }
   }
+}
+
+
+function hideIfNeeded() {
+  if (config.isSmallScreen()) sceneState.sidebarOpen = false;
 }
 
 function ensureBodyHasSidebarStyle() {
