@@ -61,6 +61,8 @@ function pixChart(imageLink, options) {
 
   var scaleImage = options.scaleImage !== undefined ? options.scaleImage : true;
   var maxPixels = options.maxPixels;
+  var startDelay = typeof options.startDelay === 'number' ? options.startDelay : 2000;
+  var reverseDelay = typeof options.reverseDelay === 'number' ? options.reverseDelay : 1500;
 
   var shaders = createShaders();
   var screenProgram = glUtils.createProgram(gl, shaders.vertexShader, shaders.fragmentShader);
@@ -230,7 +232,7 @@ function pixChart(imageLink, options) {
     pendingTimeout = setTimeout(() => {
       pendingTimeout = 0;
       nextAnimationFrame = requestAnimationFrame(animate)
-    }, 1000);
+    }, startDelay);
   }
     
   function scheduleNextFrame() {
@@ -269,7 +271,7 @@ function pixChart(imageLink, options) {
       pendingTimeout = setTimeout(() => {
         pendingTimeout = 0;
         nextAnimationFrame = requestAnimationFrame(animate);
-      }, 1000);
+      }, reverseDelay);
     }
   }
 

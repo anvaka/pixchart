@@ -8,7 +8,7 @@ function randomImagePicker() {
   var mobilePapers = 'iWallpaper'
 
   var storedLinks = predefinedLinks;
-  shuffle(predefinedLinks);
+  shuffle(storedLinks); // Note - this modifies predefined links
   var startFrom = 0;
   var after;
   //fetchNextPage();
@@ -17,15 +17,20 @@ function randomImagePicker() {
     select: select
   }
 
-  function select() {
+  function select(selectMultiple) {
     return new Promise(resolve => {
+      if (selectMultiple) {
+        shuffle(storedLinks); // Note - this modifies predefined links
+        resolve(storedLinks);
+        return;
+      }
       var img = storedLinks[startFrom]
       startFrom += 1;
       if (startFrom >= storedLinks.length) {
         startFrom = 0;
         fetchNextPage();
       }
-      resolve(img);
+      resolve([img]);
     });
   }
 

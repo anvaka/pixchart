@@ -183,9 +183,10 @@ export default {
     openShareDialog() {
       bus.fire('open-share-dialog');
     },
-    selectRandomImage() {
-      randomImagePicker.select().then((imageUrl) => {
-        sceneState.setImages([imageUrl]);
+    selectRandomImage(e) {
+      var selectMultiple = e.shiftKey;
+      randomImagePicker.select(selectMultiple).then((imageUrl) => {
+        sceneState.setImages(imageUrl);
       });
       hideIfNeeded();
     },
