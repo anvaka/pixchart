@@ -43,6 +43,14 @@
     <div class='group secondary-text'>
       <h3 class='title'>Animation</h3>
       <div class='row'>
+        <div class='col'>Group Color By</div>
+        <div class='col'>
+          <select v-model='possibleGroupBys.selected' @change='changeColor'>
+            <option v-for='groupBy in possibleGroupBys.options' :value='groupBy.value'>{{groupBy.text}}</option>
+	        </select>
+        </div>
+      </div>
+      <div class='row'>
         <div class='col'>Duration (in seconds)</div>
         <div class='col'><input type='number' step='0.1' min='0' v-model='duration' autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
       </div>
@@ -52,9 +60,8 @@
       </div>
       <div class="row">
         <div class="col">Background</div>
-        <div class="col themes">
-          <a href='#' v-for='theme in themes' @click.prevent='selectTheme(theme)' class='theme-picker' :style='{"background-color": theme.color}' :title='theme.name'>
-          </a>
+        <div class="col">
+          <color-picker @select='selectTheme' :themes='themes' :selected='selectedTheme'></color-picker>
         </div>
       </div>
     </div>
@@ -72,6 +79,7 @@
 <script>
 import About from './components/About';
 import Share from './components/Share';
+import ColorPicker from './components/ColorPicker';
 import bus from './bus';
 import createRandomImagePicker from './randomImagePicker';
 import config from './config';
@@ -85,7 +93,8 @@ export default {
   name: 'app',
   components: {
     About,
-    Share
+    Share,
+    ColorPicker
   },
   mounted() {
     ensureBodyHasSidebarStyle();
@@ -99,7 +108,30 @@ export default {
       aboutVisible: false,
       duration: sceneState.duration,
       maxPixels: sceneState.maxPixels,
-      themes: themeManager.themes
+      themes: themeManager.themes,
+      selectedTheme: themeManager.getSelected(),
+      possibleGroupBys: {
+        selected: sceneState.currentColorGroupBy,
+        options: [{
+          value: 'hsl.l',
+          text: 'Lightness (HSL.L)'
+        }, {
+          value: 'hsl.h',
+          text: 'Hue (HSL.H)'
+        }, {
+          value: 'hsl.s',
+          text: 'Saturation (HSL.S)'
+        }, {
+          value: 'rgb.r',
+          text: 'Red (RGB.R)'
+        }, {
+          value: 'rgb.g',
+          text: 'Green (RGB.G)'
+        }, {
+          value: 'rgb.b',
+          text: 'Blue (RGB.B)'
+        }]
+      }
     }
   },
   watch: {
@@ -146,6 +178,10 @@ export default {
     },
     selectTheme(theme) {
       themeManager.setTheme(theme.name);
+      this.selectedTheme = themeManager.getSelected();
+    },
+    changeColor(v) {
+      sceneState.setColorGroupBy(this.possibleGroupBys.selected);
     }
   }
 }
@@ -159,15 +195,6 @@ function ensureBodyHasSidebarStyle() {
 <style lang='stylus'>
 @import './styles/app.styl';
 @import './shared.styl';
-
-.themes {
-  flex-wrap: wrap;
-  flex-direction: row;
-}
-.theme-picker {
-  width: 28px;
-  height: 28px;
-}
 a {
   text-decoration: none;
 }
@@ -189,6 +216,9 @@ h3.title {
     align-items: center;
     display: flex;
     flex: 1;
+    select {
+      margin-left: 14px;
+    }
   }
   .row {
     margin-top: 4px;
@@ -208,6 +238,9 @@ h3.title {
       outline-offset: 0;
       outline: none;
       border: 1px dashed;
+    }
+    &:invalid {
+      box-shadow:none;
     }
   }
 }

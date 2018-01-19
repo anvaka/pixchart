@@ -1,4 +1,4 @@
-// var eventify = require('ngraph.events');
+var eventify = require('ngraph.events');
 var createShaders = require('./lib/createShaders');
 var glUtils = require('./lib/gl-utils.js');
 var loadImage = require('./lib/loadImage');
@@ -37,7 +37,8 @@ function pixChart(imageLink, options) {
   var particleLoaderSettings = {
     isCancelled: false,
     framesCount: framesCount,
-    onProgress: reportImageStatsProgress
+    onProgress: reportImageStatsProgress,
+    colorGroupBy: options.colorGroupBy
   }
 
   var progress = {
@@ -57,27 +58,29 @@ function pixChart(imageLink, options) {
   var sceneWidth = canvas.clientWidth;
   var sceneHeight = canvas.clientHeight;
 
+  var scaleImage = options.scaleImage !== undefined ? options.scaleImage : true;
+  var maxPixels = options.maxPixels;
+
   var shaders = createShaders();
   var screenProgram = glUtils.createProgram(gl, shaders.vertexShader, shaders.fragmentShader);
 
-  var api = {
+  var api = eventify({
     dispose,
     imageLink,
     restartCycle: startExpandCollapseCycle,
     setSceneSize: setSceneSize,
     setFramesCount,
-    setMaxPixels
-  };
+    setMaxPixels,
+    colorGroupBy
+  });
 
-  startAnimationPipeline();
+  // So that any event handler are subscribed.
+  setTimeout(startAnimationPipeline, 0);
 
   return api;
 
   function startAnimationPipeline() {
-    loadImage(imageObject, {
-      scaleImage: options.scaleImage !== undefined ? options.scaleImage : true,
-      maxPixels: options.maxPixels
-    })
+    loadImageWithCurrentOptions()
       .then(updateProgressAndLoadParticles)
       .then(initWebGLPrimitives)
       .then(startExpandCollapseCycle)
@@ -89,13 +92,27 @@ function pixChart(imageLink, options) {
       });
   }
 
-  function setMaxPixels(maxPixels) {
+  function setMaxPixels(newMaxPixels) {
+    maxPixels = newMaxPixels; // TODO: Validate?
 
-    loadImage(imageObject, {
-      scaleImage: options.scaleImage !== undefined ? options.scaleImage : true,
-      maxPixels: maxPixels,
-    }).then(updateProgressAndLoadParticles)
+    loadImageWithCurrentOptions()
+      .then(updateProgressAndLoadParticles)
       .then(loadedImage => initWebGLPrimitives(loadedImage, /* keepCurrentFrame = */ true));
+  }
+
+  function loadImageWithCurrentOptions() {
+    return loadImage(imageObject, {
+      scaleImage,
+      maxPixels
+    })
+  }
+
+  function colorGroupBy(newColorGroupBy) {
+    particleLoaderSettings.colorGroupBy = newColorGroupBy;
+
+    loadImageWithCurrentOptions()
+      .then(updateProgressAndLoadParticles)
+      .then(initWebGLPrimitives);
   }
 
   function updateProgressAndLoadParticles(image) {
@@ -127,9 +144,7 @@ function pixChart(imageLink, options) {
   }
 
   function notifyProgress() {
-    if (options.progress) { 
-      options.progress(progress);
-     }
+    api.fire('loading-progress', progress);
   }
 
   function setFramesCount(newCount) {
@@ -250,9 +265,7 @@ function pixChart(imageLink, options) {
     setInitialFrameNumber();
     if (state === initialState) {
       // make a pause, let the clients re-trigger.
-      if (options.cycleComplete) {
-        options.cycleComplete();
-      }
+      api.fire('cycle-complete');
     } else {
       // drive it back to original state
       pendingTimeout = setTimeout(() => {

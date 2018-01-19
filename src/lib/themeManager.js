@@ -76,34 +76,36 @@ var themes = [
   },
 ];
 
-
-
 function createThemeManager() {
-    var themeLookup = new Set();
-    themes.forEach(x => themeLookup.add(x.name));
+  var themeLookup = new Map();
+  themes.forEach(x => themeLookup.set(x.name, x));
 
-    return {
-      themes,
-      setTheme
-    }
+  return {
+    themes,
+    setTheme,
+    getSelected
+  }
 
-    function setTheme(themeName) {
-      if (!themeLookup.has(themeName)) throw new Error('Unknown theme name ' + themeName)
-      removeCurrentTheme();
-      document.body.classList.add(themeName);
-      bus.fire('theme-changed', themeName);
-    }
+  function setTheme(themeName) {
+    if (!themeLookup.has(themeName)) throw new Error('Unknown theme name ' + themeName)
+    removeCurrentTheme();
+    document.body.classList.add(themeName);
+    bus.fire('theme-changed', themeName);
+  }
 
-    function removeCurrentTheme() {
-      var classList = document.body.classList;
-      for (var i = 0; i < classList.length; ++i) {
-        var className = classList[i];
-        if (themeLookup.has(className)) {
-          classList.remove(className);
-          return;
-        }
-      }
+  function removeCurrentTheme() {
+    var selectedTheme = getSelected();
+    if (selectedTheme) document.body.classList.remove(selectedTheme.name);
+  }
+
+  function getSelected() {
+    var classList = document.body.classList;
+    for (var i = 0; i < classList.length; ++i) {
+      var className = classList[i];
+      var theme = themeLookup.get(className);
+      if (theme) return theme; 
     }
+  }
 }
 
 // Use for whitelisting in index.html

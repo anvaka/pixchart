@@ -42,7 +42,7 @@ theme(background, darker_background, secondary_text, primary_text = white) {
     background: background;
   }
 
-  .secondary_border {
+  .secondary-border {
     border-color: secondary_border;
   }
 
@@ -59,6 +59,9 @@ theme(background, darker_background, secondary_text, primary_text = white) {
   input.image-picker {
     border: 1px dashed secondary_border;
   }
+  .logo svg {
+    fill: primary_text;
+  }
   .sidebar-buttons {
     svg {
       fill: secondary_text;
@@ -71,7 +74,7 @@ theme(background, darker_background, secondary_text, primary_text = white) {
   }
 
   .input-row {
-    ::placeholder {
+    .image-picker::placeholder {
       color: secondary_text;
     }
   }
@@ -145,8 +148,8 @@ body.east-bay {
 body.flamingo {
   theme(
     background: #EC694D,
-    darker_background: #8C3721,
-    secondary_text: #DDC29F
+    darker_background: #8E3720,
+    secondary_text: #F6C2B4
 
   );
 }
@@ -176,6 +179,12 @@ body.white {
   }
 .hide-button {
     fill: #999;
+  }
+
+  .group {
+input[type='text'],input[type='number'] {
+      color: #000000;
+    }
   }
 }
 body.black20 {

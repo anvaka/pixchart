@@ -11,6 +11,8 @@ var qs = queryState({
   d: DEFAULT_ANIMATION_DURATION
 }, {useSearch: true});
 
+var validColorGroups = new Set(['hsl.l', 'hsl.h', 'hsl.s', 'rgb.r', 'rgb.g', 'rgb.b']);
+
 module.exports = initScene;
 
 function initScene(canvas) {
@@ -41,6 +43,7 @@ function initScene(canvas) {
     qs,
     duration: DEFAULT_ANIMATION_DURATION,
     maxPixels: Math.min(window.innerWidth * window.innerHeight, 640 * 640),
+    currentColorGroupBy: getSafeColorGroupBy(qs.get('groupBy')), 
 
     updateSize,
 
@@ -48,13 +51,33 @@ function initScene(canvas) {
     
     setImages,
     setAnimationDuration,
-    setMaxPixels
+    setMaxPixels,
+    setColorGroupBy
   };
 
   setAnimationDuration(qs.get('d'));
 
   window.sceneState = state;
   return;
+
+  function getSafeColorGroupBy(plainInput) {
+    if (validColorGroups.has(plainInput)) return plainInput;
+
+    return 'hsl.l';
+  }
+
+  function setColorGroupBy(groupBy) {
+    var safeGroupBy = getSafeColorGroupBy(groupBy); 
+    state.currentColorGroupBy = safeGroupBy;
+    qs.set('groupBy', state.currentColorGroupBy);
+
+    if (!queue) return;
+
+    // TODO: Validate?
+    lastIndex -= 1;
+    if (lastIndex < 0) lastIndex = queue.length - 1;
+    processNextInQueue(/* forceDispose = */true);
+  }
 
   function handlePaste(e){
     var items = e.clipboardData.items;
@@ -138,8 +161,8 @@ function initScene(canvas) {
     }
   }
 
-  function setImage(imageLink) {
-    if (currentPixChart && imageLink === currentPixChart.imageLink) {
+  function setImage(imageLink, forceDispose) {
+    if (currentPixChart && imageLink === currentPixChart.imageLink && !forceDispose) {
       currentPixChart.restartCycle()
       return;
     }
@@ -166,14 +189,16 @@ function initScene(canvas) {
 
     currentPixChart = pixChart(imageLink, {
       canvas,
+      colorGroupBy: state.currentColorGroupBy,
       scaleImage: true,
       maxPixels: state.maxPixels,
       framesCount: toFrames(state.duration),
-      progress: showLoadingProgress,
-      cycleComplete: () => {
-        pendingTimeout = setTimeout(processNextInQueue, PAUSE_BETWEEN_CYCLES);
-      }
     });
+
+    currentPixChart.on('cycle-complete', () => {
+      pendingTimeout = setTimeout(processNextInQueue, PAUSE_BETWEEN_CYCLES);
+    });
+    currentPixChart.on('loading-progress', showLoadingProgress);
   }
 
   function setImages(files) {
@@ -214,7 +239,7 @@ function initScene(canvas) {
     return seconds * 60; // Assuming 60 fps.
   }
 
-  function processNextInQueue() {
+  function processNextInQueue(forceDispose) {
     if (pendingTimeout) {
       clearTimeout(pendingTimeout);
       pendingTimeout = 0;
@@ -224,7 +249,7 @@ function initScene(canvas) {
     lastIndex += 1;
     if (lastIndex >= queue.length) lastIndex = 0;
 
-    setImage(img)
+    setImage(img, forceDispose)
   }
 }
 

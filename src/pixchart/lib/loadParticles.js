@@ -1,4 +1,4 @@
-// var chroma = require('chroma-js')
+var chroma = require('chroma-js');
 var {rgbToHsl} = require('./colors');
 var random = require('ngraph.random')(42);
 
@@ -9,6 +9,8 @@ function loadParticles(image, options) {
 
   var actualResolve;
   var {onProgress} = options;
+
+  var getValue = getGroupByFunction(options.colorGroupBy);
 
   var initIntervals = 0;
 
@@ -21,6 +23,8 @@ function loadParticles(image, options) {
   var bucketsCount = n; // TODO: Customize?
 
   var maxYValue = 0;  
+  var minVValue = Number.POSITIVE_INFINITY;
+  var maxVValue = Number.NEGATIVE_INFINITY;
   
   var ctx = cnv.getContext('2d');
   ctx.drawImage(image, 0, 0, image.width, image.height); 
@@ -41,10 +45,44 @@ function loadParticles(image, options) {
   scheduleWork();
   
   return new Promise((resolve) => { actualResolve = resolve; });
-  // TODO: Should be customizable.
-  function getValue(r, g, b) {
+
+  function getGroupByFunction(requestedGrouping) {
+    if (typeof requestedGrouping === 'function') return requestedGrouping;
+
+    switch (requestedGrouping) {
+      case 'hsl.h': return getValueHSL_H;
+      case 'hsl.s': return getValueHSL_S;
+      case 'hsl.l': return getValueHSL_L;
+      case 'rgb.r': return getValueRGB_R;
+      case 'rgb.g': return getValueRGB_G;
+      case 'rgb.b': return getValueRGB_B;
+    }
+
+    return getValueHSL_L;
+  }
+
+  function getValueRGB_R(r, g, b) {
+    return r/255;
+  }
+
+  function getValueRGB_G(r, g, b) {
+    return g/255;
+  }
+
+  function getValueRGB_B(r, g, b) {
+    return b/255;
+  }
+
+  function getValueHSL_S(r, g, b) {
+    return rgbToHsl(r, g, b)[1];
+  }
+
+  function getValueHSL_H(r, g, b) {
+    return rgbToHsl(r, g, b)[0];
+  }
+
+  function getValueHSL_L(r, g, b) {
     return rgbToHsl(r, g, b)[2];
-    //return chroma(r, g, b).get('hsl.l');
   }
   
   function scheduleWork() {
@@ -62,11 +100,14 @@ function loadParticles(image, options) {
     var start = performance.now(); 
     var currentYValue;
     var pixelsCount = 4 * n;
+
     while (idx < pixelsCount) { 
       var invIndex = pixelsCount - idx - 4;
       var r = pixels[invIndex + 0], g = pixels[invIndex + 1], b = pixels[invIndex + 2];
 
       var v = getValue(r, g, b);
+      if (v < minVValue) minVValue = v;
+      if (v > maxVValue) maxVValue = v;
       // v ranges from 0 to 1.
       var bucketNumber = Math.round(v * bucketsCount);
 
@@ -89,7 +130,7 @@ function loadParticles(image, options) {
       if (frameSpan < minFrameSpan) minFrameSpan = frameSpan;
       if (frameSpan > maxFrameSpan) maxFrameSpan = frameSpan;
 
-      // if (v <= 0.09) { 
+      // if (v <= 0.001) { 
       //   // TODO: Proper ignore logic here.
       //   particleAttributes[idx] = -1;
       // } else  
@@ -104,6 +145,7 @@ function loadParticles(image, options) {
     
     console.timeEnd('initParticles');
     console.log('initialized in ' + initIntervals + ' intervals; Max Value:', maxYValue);
+    console.log('Color range: ', minVValue, maxVValue);
     
     actualResolve({
       minFrameSpan,
