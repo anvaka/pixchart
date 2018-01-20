@@ -89,16 +89,18 @@ void main() {
     v_color.a = 0.; //mix(0.1, 0., t);
   }
 
-  //t = bease(t0, vec2(0.68, -0.55), vec2(0.265, 1.55)); // easeInOutBack
-  //t = bease(t0, vec2(0.5, 0.5), vec2(0.5, 0.5)); // linear
-  //t = bease(t0, vec2(0.19, 1), vec2(0.22, 1)); // easeOutExpo
-  //t = bease(t0, vec2(1, 0.), vec2(0., 1)); // easeOutExpo
- 
-  float tmin = 1. - t;
+  // This would give 3d
+  // vec3 h = rgb2hsv(v_color.rgb);
+  // float z = mix(0.,h[0], t);
+  // float zCam = 2.;
+  // target.x = - target.x/(z - zCam);
+  // target.y = -target.y/(z - zCam);
+
   // we want to have fast start/slow cool down on each animation phase
+  float tmin = 1. - t;
   vec2 dest = u_frame[3] == 2. ? tmin * target + t * source : tmin * source + t * target;
   //vec2 dest = tmin * tmin * source + 2. * tmin * arrival0 * t + t * t * target;
   //vec2 dest = tmin * tmin * tmin * source + 3. * tmin * tmin * vec2(0., 0.1) * t + 3. * tmin * t * t * target/2. + target * t * t * t; 
   gl_Position = vec4(dest, 0, 1);
-  gl_PointSize = max(1., ceil(factor));
+  gl_PointSize = max(1., ceil(factor));//= mix(srcSize, destSize, t);
 }
