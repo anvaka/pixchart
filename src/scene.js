@@ -4,7 +4,7 @@ var config = require('./config.js');
 var createFileDropHandler = require('./lib/fileDrop');
 var bus = require('./bus');
 
-var DEFAULT_ANIMATION_DURATION = 3.14; // in seconds, because visible to users
+var DEFAULT_ANIMATION_DURATION = 2.0; // in seconds, because visible to users
 var PAUSE_BETWEEN_CYCLES = 1000; // in milliseconds, because for developers
 
 var qs = queryState({
@@ -42,7 +42,7 @@ function initScene(canvas) {
     sidebarOpen: !config.isSmallScreen(),
     qs,
     duration: DEFAULT_ANIMATION_DURATION,
-    maxPixels: Math.min(window.innerWidth * window.innerHeight, 640 * 640),
+    maxPixels: Math.min(window.innerWidth * window.innerHeight , 640 * 640) * window.devicePixelRatio,
     currentColorGroupBy: getSafeColorGroupBy(qs.get('groupBy')), 
     initialImageState: getSafeInitialState(qs.get('initial')),
 

@@ -46,8 +46,8 @@
         <div class='col'>Initial state</div>
         <div class='col'>
           <select v-model='initialImageState' @change='changeInitialState'>
-            <option value='expanded'>Full Image</option>
-            <option value='collapsed'>Image chart</option>
+            <option value='expanded'>Image</option>
+            <option value='collapsed'>Chart</option>
 	        </select>
         </div>
       </div>
@@ -67,7 +67,7 @@
 	        </select>
         </div>
       </div>
-      <div class="row">
+      <div class='row color-row'>
         <div class="col">Background</div>
         <div class="col">
           <color-picker @select='selectTheme' :themes='themes' :selected='selectedTheme'></color-picker>
@@ -251,6 +251,13 @@ h3.title {
     flex-direction: row;
     height: 32px;
   }
+  .color-row {
+    height: auto;
+    align-items: start;
+    .col {
+      min-height: 32px;
+    }
+  }
   input[type='text'],
   input[type='number'] {
     background: transparent;
@@ -279,9 +286,10 @@ h3.title {
   top: 42px;
   font-size: 14px;
   padding-top: 8px;
-  position: absolute;
+  flex: 1;
+  overflow-y: auto;
   width: 100%;
-  transition: top, opacity;
+  transition: opacity;
   transition-duration: 0.3s;
   transition-timing-function: cubic-bezier(0.0,0.0,0.5,1);
 }
@@ -430,6 +438,8 @@ a.about-icon {
   .settings-dialog {
     width: 100%;
     height: auto;
+    max-height: 100%;
+    overflow: hidden;
     .sidebar-buttons {
        a:last-child {
          border-right: none;
@@ -441,7 +451,8 @@ a.about-icon {
   }
   .settings-dialog.collapsed {
     .sidebar-content {
-      top: -350px;
+      //transform: translateY(-350px);
+      display: none;
     }
   }
 }
