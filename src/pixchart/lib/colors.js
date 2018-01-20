@@ -13,7 +13,7 @@ module.exports = {
  * @param   Number  b       The blue color value
  * @return  Array           The HSL representation
  */
-function rgbToHsl(r, g, b) {
+function rgbToHsl(r, g, b, component) {
   r /= 255, g /= 255, b /= 255;
 
   var max = Math.max(r, g, b), min = Math.min(r, g, b);
@@ -33,6 +33,7 @@ function rgbToHsl(r, g, b) {
 
     h /= 6;
   }
-
-  return [ h, s, l ];
+  if (component === 0) return h;
+  if (component === 1) return s;
+  if (component === 2) return l;
 }

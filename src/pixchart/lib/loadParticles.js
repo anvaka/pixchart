@@ -21,6 +21,7 @@ function loadParticles(image, options) {
 
   var bucketsCount = n; // TODO: Customize?
 
+  var nomralizeV = false;
   var maxYValue = 0;  
   var minVValue = Number.POSITIVE_INFINITY;
   var maxVValue = Number.NEGATIVE_INFINITY;
@@ -41,6 +42,22 @@ function loadParticles(image, options) {
   console.timeEnd('init stats');
   
   console.time('initParticles');
+
+  if (nomralizeV) {
+    // TODO: Async?
+    console.time('minmax');
+    var pixelsCount = 4 * n;
+    for (var i = 0; i < pixelsCount; i += 4) {
+      var r = pixels[i + 0], g = pixels[i + 1], b = pixels[i + 2];
+      var v = getValue(r, g, b);
+      if (v < minVValue) minVValue = v;
+      if (v > maxVValue) maxVValue = v;
+    }
+    console.timeEnd('minmax');
+  } else {
+    minVValue = 0;
+    maxVValue = 1;
+  }
   scheduleWork();
   
   return new Promise((resolve) => { actualResolve = resolve; });
@@ -72,16 +89,16 @@ function loadParticles(image, options) {
     return b/255;
   }
 
-  function getValueHSL_S(r, g, b) {
-    return rgbToHsl(r, g, b)[1];
+  function getValueHSL_H(r, g, b) {
+    return rgbToHsl(r, g, b, 0);
   }
 
-  function getValueHSL_H(r, g, b) {
-    return rgbToHsl(r, g, b)[0];
+  function getValueHSL_S(r, g, b) {
+    return rgbToHsl(r, g, b, 1);
   }
 
   function getValueHSL_L(r, g, b) {
-    return rgbToHsl(r, g, b)[2];
+    return rgbToHsl(r, g, b, 2);
   }
   
   function scheduleWork() {
@@ -104,7 +121,7 @@ function loadParticles(image, options) {
       var invIndex = pixelsCount - idx - 4;
       var r = pixels[invIndex + 0], g = pixels[invIndex + 1], b = pixels[invIndex + 2];
 
-      var v = getValue(r, g, b);
+      var v = (getValue(r, g, b) - minVValue)/(maxVValue - minVValue);
       if (v < minVValue) minVValue = v;
       if (v > maxVValue) maxVValue = v;
       // v ranges from 0 to 1.
@@ -129,10 +146,10 @@ function loadParticles(image, options) {
       if (frameSpan < minFrameSpan) minFrameSpan = frameSpan;
       if (frameSpan > maxFrameSpan) maxFrameSpan = frameSpan;
 
-      // if (v <= 0.001) { 
-      //   // TODO: Proper ignore logic here.
-      //   particleAttributes[idx] = -1;
-      // } else  
+      if (v === 0.0) { 
+        // TODO: Proper ignore logic here.
+        particleAttributes[idx] = -1;
+      } else  
       if (currentYValue > maxYValue) maxYValue = currentYValue;
 
       idx += 4;
@@ -141,6 +158,7 @@ function loadParticles(image, options) {
         return;
       }  
     }
+    idx = 0;
     
     console.timeEnd('initParticles');
     console.log('initialized in ' + initIntervals + ' intervals; Max Value:', maxYValue);
