@@ -11,8 +11,6 @@ var qs = queryState({
   d: DEFAULT_ANIMATION_DURATION
 }, {useSearch: true});
 
-var validColorGroups = new Set(['hsl.l', 'hsl.h', 'hsl.s', 'rgb.r', 'rgb.g', 'rgb.b']);
-
 module.exports = initScene;
 
 function initScene(canvas) {
@@ -75,9 +73,7 @@ function initScene(canvas) {
   }
 
   function getSafeColorGroupBy(plainInput) {
-    if (validColorGroups.has(plainInput)) return plainInput;
-
-    return 'hsl.l';
+    return plainInput || 'hsl.l';
   }
 
   function setColorGroupBy(groupBy) {

@@ -81,8 +81,8 @@ void main() {
 
   // if (a_particle.x < 0.) {
   //   // these particles are filtered out.
-  //   target.x = source.x; //cos(atan(source.y, source.x)) * 2.;
-  //   target.y = source.y; //sin(atan(source.y, source.x)) * 2.;
+  //   target.x = 0.; //source.x; //cos(atan(source.y, source.x)) * 2.;
+  //   target.y = 0.; //source.y; //sin(atan(source.y, source.x)) * 2.;
   //   v_color.a = 0.; //mix(0.1, 0., t);
   //   //v_color = vec4(1.0, 0., 0., 1.);
   // }

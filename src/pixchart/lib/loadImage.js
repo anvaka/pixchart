@@ -30,7 +30,7 @@ function loadImage(imageObject, options) {
     
     if (!maxPixels) {
       // TODO: Not sure if this is bad or good.
-      maxPixels = Math.min(window.innerWidth * window.innerHeight, 640 * 640);
+      maxPixels = Math.min(window.innerWidth * window.innerHeight , 640 * 640) * window.devicePixelRatio;
     }
 
     var ar = image.width/image.height;

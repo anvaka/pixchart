@@ -1,5 +1,5 @@
-var {rgbToHsl} = require('./colors');
 var random = require('ngraph.random')(42);
+var groupFunctions = require('./groupFunctions');
 
 module.exports = loadParticles;
 
@@ -9,7 +9,7 @@ function loadParticles(image, options) {
   var actualResolve;
   var {onProgress} = options;
 
-  var getValue = getGroupByFunction(options.colorGroupBy);
+  var {getValue, normalizeV} = getGroupByFunction(options.colorGroupBy);
 
   var initIntervals = 0;
 
@@ -21,7 +21,6 @@ function loadParticles(image, options) {
 
   var bucketsCount = n; // TODO: Customize?
 
-  var nomralizeV = false;
   var maxYValue = 0;  
   var minVValue = Number.POSITIVE_INFINITY;
   var maxVValue = Number.NEGATIVE_INFINITY;
@@ -43,7 +42,7 @@ function loadParticles(image, options) {
   
   console.time('initParticles');
 
-  if (nomralizeV) {
+  if (normalizeV) {
     // TODO: Async?
     console.time('minmax');
     var pixelsCount = 4 * n;
@@ -63,44 +62,25 @@ function loadParticles(image, options) {
   return new Promise((resolve) => { actualResolve = resolve; });
 
   function getGroupByFunction(requestedGrouping) {
-    if (typeof requestedGrouping === 'function') return requestedGrouping;
-
-    switch (requestedGrouping) {
-      case 'hsl.h': return getValueHSL_H;
-      case 'hsl.s': return getValueHSL_S;
-      case 'hsl.l': return getValueHSL_L;
-      case 'rgb.r': return getValueRGB_R;
-      case 'rgb.g': return getValueRGB_G;
-      case 'rgb.b': return getValueRGB_B;
+    if (typeof requestedGrouping === 'string') {
+      requestedGrouping = groupFunctions[requestedGrouping];
+    }
+    if (typeof requestedGrouping === 'function') {
+      return {
+        normalizeV: false,
+        getValue: requestedGrouping
+      };
+    }
+    if (requestedGrouping && typeof requestedGrouping.getValue === 'function') {
+      return {
+        normalizeV: requestedGrouping.normalize,
+        getValue: requestedGrouping.getValue
+      };
     }
 
-    return getValueHSL_L;
+    throw new Error('Unknown group by function');
   }
 
-  function getValueRGB_R(r, g, b) {
-    return r/255;
-  }
-
-  function getValueRGB_G(r, g, b) {
-    return g/255;
-  }
-
-  function getValueRGB_B(r, g, b) {
-    return b/255;
-  }
-
-  function getValueHSL_H(r, g, b) {
-    return rgbToHsl(r, g, b, 0);
-  }
-
-  function getValueHSL_S(r, g, b) {
-    return rgbToHsl(r, g, b, 1);
-  }
-
-  function getValueHSL_L(r, g, b) {
-    return rgbToHsl(r, g, b, 2);
-  }
-  
   function scheduleWork() {
     if (options.isCancelled) return;
 
@@ -146,10 +126,10 @@ function loadParticles(image, options) {
       if (frameSpan < minFrameSpan) minFrameSpan = frameSpan;
       if (frameSpan > maxFrameSpan) maxFrameSpan = frameSpan;
 
-      if (v === 0.0) { 
-        // TODO: Proper ignore logic here.
-        particleAttributes[idx] = -1;
-      } else  
+      // if (v === 0.0) { 
+      //   // TODO: Proper ignore logic here.
+      //   particleAttributes[idx] = -1;
+      // } else  
       if (currentYValue > maxYValue) maxYValue = currentYValue;
 
       idx += 4;

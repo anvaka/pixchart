@@ -140,6 +140,9 @@ export default {
         }, {
           value: 'rgb.b',
           text: 'Blue (RGB.B)'
+        }, {
+          value: 'avg.rgb',
+          text: 'Mean (RGB)'
         }]
       }
     }
