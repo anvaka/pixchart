@@ -74,11 +74,14 @@
         </div>
       </div>
     </div>
-
-    </div>
-    <a class='hide-button' href='#' @click.prevent='scene.sidebarOpen = !scene.sidebarOpen'>
-      <svg> <path d='M10,10 L5,5 L10,0z'></path> </svg>
-    </a>
+    <!--div class='group secondary-text'>
+      <h3 class='title'>Statistics</h3>
+      <statistics></statistics>
+    </div-->
+  </div>
+  <a class='hide-button' href='#' @click.prevent='scene.sidebarOpen = !scene.sidebarOpen'>
+    <svg> <path d='M10,10 L5,5 L10,0z'></path> </svg>
+  </a>
   </div>
   <about @close='aboutVisible = false' v-if='aboutVisible'></about>
   <share></share>
@@ -89,6 +92,7 @@
 import About from './components/About';
 import Share from './components/Share';
 import ColorPicker from './components/ColorPicker';
+import Statistics from './components/Statistics';
 import bus from './bus';
 import createRandomImagePicker from './randomImagePicker';
 import config from './config';
@@ -103,7 +107,8 @@ export default {
   components: {
     About,
     Share,
-    ColorPicker
+    ColorPicker,
+    Statistics
   },
   mounted() {
     ensureBodyHasSidebarStyle();

@@ -1,8 +1,10 @@
 var queryState = require('query-state');
 var pixChart = require('./pixchart/index');
 var config = require('./config.js');
+var makeStats = require('./lib/makeStats');
 var createFileDropHandler = require('./lib/fileDrop');
 var bus = require('./bus');
+var formatNumber = require('./lib/formatNumber');
 
 var DEFAULT_ANIMATION_DURATION = 2.0; // in seconds, because visible to users
 var PAUSE_BETWEEN_CYCLES = 1000; // in milliseconds, because for developers
@@ -43,6 +45,7 @@ function initScene(canvas) {
     maxPixels: Math.min(window.innerWidth * window.innerHeight , 640 * 640) * window.devicePixelRatio,
     currentColorGroupBy: getSafeColorGroupBy(qs.get('groupBy')), 
     initialImageState: getSafeInitialState(qs.get('initial')),
+    getStatistics,
 
     updateSize,
 
@@ -53,12 +56,26 @@ function initScene(canvas) {
     setMaxPixels,
     setColorGroupBy,
     setInitialState,
+    ignoreColor
   };
 
   setAnimationDuration(qs.get('d'));
 
   window.sceneState = state;
   return;
+
+  function ignoreColor(c) {
+    if (currentPixChart) {
+      currentPixChart.ignoreColor(c);
+    }
+  }
+
+  function getStatistics() {
+    if (currentPixChart) {
+      var buckets = currentPixChart.getBuckets();
+      return makeStats(buckets);
+    }
+  }
 
   function setInitialState(newInitialState) {
     state.initialImageState = newInitialState;
@@ -149,7 +166,7 @@ function initScene(canvas) {
 
   function showLoadingProgress(progress) {
     if (progress.step === 'pixels') {
-      progressElement.innerText = 'Processed ' + format(progress.current) + ' pixels out of ' + format(progress.total);
+      progressElement.innerText = 'Processed ' + formatNumber(progress.current) + ' pixels out of ' + formatNumber(progress.total);
     } else if (progress.step === 'done') {
       progressElement.style.opacity = '0';
       if (progress.imageObject.isUrl) {
@@ -159,6 +176,7 @@ function initScene(canvas) {
       } else {
         qs.set('link', '')
       }
+      bus.fire('image-loaded');
     } else if (progress.step === 'error') {
       progressElement.classList.add('error');
       cleanErrorClass = true;
@@ -266,10 +284,6 @@ function initScene(canvas) {
 
     setImage(img, forceDispose)
   }
-}
-
-function format(x) {
-  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 // TODO: color themes.   background: #343945;

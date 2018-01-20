@@ -7,7 +7,7 @@ function loadParticles(image, options) {
   if (!options) throw new Error('Options required');
 
   var actualResolve;
-  var {onProgress} = options;
+  var {onProgress, ignoreColor} = options;
 
   var {getValue, normalizeV} = getGroupByFunction(options.colorGroupBy);
 
@@ -19,7 +19,7 @@ function loadParticles(image, options) {
   var width = cnv.width = image.width, height = cnv.height = image.height;
   var n = width * height;
 
-  var bucketsCount = n; // TODO: Customize?
+  var bucketsCount = 1000; //width; // TODO: Customize?
 
   var maxYValue = 0;  
   var minVValue = Number.POSITIVE_INFINITY;
@@ -126,10 +126,10 @@ function loadParticles(image, options) {
       if (frameSpan < minFrameSpan) minFrameSpan = frameSpan;
       if (frameSpan > maxFrameSpan) maxFrameSpan = frameSpan;
 
-      // if (v === 0.0) { 
-      //   // TODO: Proper ignore logic here.
-      //   particleAttributes[idx] = -1;
-      // } else  
+      if (bucketNumber === ignoreColor) { 
+        // TODO: Proper ignore logic here.
+        particleAttributes[idx] = -1;
+      } else  
       if (currentYValue > maxYValue) maxYValue = currentYValue;
 
       idx += 4;
@@ -138,13 +138,13 @@ function loadParticles(image, options) {
         return;
       }  
     }
-    idx = 0;
-    
+
     console.timeEnd('initParticles');
     console.log('initialized in ' + initIntervals + ' intervals; Max Value:', maxYValue);
     console.log('Color range: ', minVValue, maxVValue);
     
     actualResolve({
+      buckets: bucketColors,
       minFrameSpan,
       maxFrameSpan,
       particleAttributes: particleAttributes,

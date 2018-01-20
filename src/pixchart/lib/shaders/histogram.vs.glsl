@@ -2,6 +2,9 @@ precision highp float;
 uniform sampler2D u_image;
 
 // Everything we need to know about frame
+// [0] - currentFrameNumber
+// [1] - minFrame value
+// [2] - maxFrame value
 uniform vec4 u_frame;
 uniform float u_max_y_value;
 uniform vec2 mouse_pos;
@@ -73,26 +76,26 @@ void main() {
     (2. * a_particle.y/(u_max_y_value) - 1.) * 0.9
   ) * factor * u_sizes.xy/u_sizes.zw; 
 
+// This particle is allowed to live `timeSpan` steps, while current frame (u_frame[0]) is
+// advancing. Their time zero is counted at u_frame[1].
   float timeSpan = a_particle.z;
-  float frameRatio = (timeSpan - u_frame[1])/(u_frame[2] - u_frame[1]);
-  float t0 = clamp((u_frame[0] - u_frame[1])/(u_frame[2] - u_frame[1])/frameRatio, 0., 1.);
-  //float t = ease(t0);
+  float t0 = clamp((u_frame[0] - u_frame[1])/(timeSpan - u_frame[1]), 0., 1.);
   float t = bease(t0, vec2(0., 0.19), vec2(0.61, 1)); // easeInOutCubic
 
-  // if (a_particle.x < 0.) {
-  //   // these particles are filtered out.
-  //   target.x = 0.; //source.x; //cos(atan(source.y, source.x)) * 2.;
-  //   target.y = 0.; //source.y; //sin(atan(source.y, source.x)) * 2.;
-  //   v_color.a = 0.; //mix(0.1, 0., t);
-  //   //v_color = vec4(1.0, 0., 0., 1.);
-  // }
+  if (a_particle.x < 0.) {
+    // these particles are filtered out.
+    target.x = 0.; //source.x; //cos(atan(source.y, source.x)) * 2.;
+    target.y = 0.; //source.y; //sin(atan(source.y, source.x)) * 2.;
+    v_color.a = 0.; //mix(0.1, 0., t);
+  }
 
   //t = bease(t0, vec2(0.68, -0.55), vec2(0.265, 1.55)); // easeInOutBack
   //t = bease(t0, vec2(0.5, 0.5), vec2(0.5, 0.5)); // linear
   //t = bease(t0, vec2(0.19, 1), vec2(0.22, 1)); // easeOutExpo
-  t = bease(t0, vec2(1, 0.), vec2(0., 1)); // easeOutExpo
+  //t = bease(t0, vec2(1, 0.), vec2(0., 1)); // easeOutExpo
  
   float tmin = 1. - t;
+  // we want to have fast start/slow cool down on each animation phase
   vec2 dest = u_frame[3] == 2. ? tmin * target + t * source : tmin * source + t * target;
   //vec2 dest = tmin * tmin * source + 2. * tmin * arrival0 * t + t * t * target;
   //vec2 dest = tmin * tmin * tmin * source + 3. * tmin * tmin * vec2(0., 0.1) * t + 3. * tmin * t * t * target/2. + target * t * t * t; 

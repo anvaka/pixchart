@@ -37,6 +37,7 @@ function pixChart(imageLink, options) {
 
   var particleLoaderSettings = {
     isCancelled: false,
+    ignoreColor: null,
     framesCount: framesCount,
     onProgress: reportImageStatsProgress,
     colorGroupBy: options.colorGroupBy
@@ -49,12 +50,13 @@ function pixChart(imageLink, options) {
     step: 'image',
   };
 
+  var buckets;
   var requestSizeUpdate = false;
 
   // Image size can be different than scene size (e.g. image is smaller than screen)
   // Thus, we need to track them both.
   var imageWidth, imageHeight, minFrameSpan, maxFrameSpan, frameChangeRate;
-  var imgInfo, particleAttributesBuffer;
+  var imgInfo, particleAttributesBuffer, ignoreColor;
 
   var sceneWidth = canvas.clientWidth;
   var sceneHeight = canvas.clientHeight;
@@ -70,17 +72,23 @@ function pixChart(imageLink, options) {
   var api = eventify({
     dispose,
     imageLink,
+    ignoreColor,
     restartCycle: startExpandCollapseCycle,
     setSceneSize: setSceneSize,
     setFramesCount,
     setMaxPixels,
-    colorGroupBy
+    colorGroupBy,
+    getBuckets
   });
 
   // So that any event handler are subscribed.
   setTimeout(startAnimationPipeline, 0);
 
   return api;
+
+  function getBuckets() {
+    return buckets;
+  }
 
   function startAnimationPipeline() {
     loadImageWithCurrentOptions()
@@ -118,14 +126,24 @@ function pixChart(imageLink, options) {
       .then(initWebGLPrimitives);
   }
 
+  function ignoreColor(newIgnoreColor) {
+    particleLoaderSettings.ignoreColor = newIgnoreColor * 1000;
+
+    loadImageWithCurrentOptions()
+      .then(updateProgressAndLoadParticles)
+      .then(initWebGLPrimitives);
+  }
+
   function updateProgressAndLoadParticles(image) {
     progress.total = image.width * image.height;
     progress.step = 'pixels';
     notifyProgress();
+    buckets = null;
 
     return loadParticles(image, particleLoaderSettings)
       .then(particles => {
         progress.step = 'done';
+        buckets = particles.buckets;
         notifyProgress();
 
         return {
