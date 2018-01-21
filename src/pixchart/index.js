@@ -224,6 +224,9 @@ function pixChart(imageLink, options) {
 
     drawCurrentFrame();
     scheduleNextFrame();
+    var t = (currentFrameNumber - minFrameSpan)/(maxFrameSpan - minFrameSpan);
+    if (state === ANIMATION_EXPAND) t = 1 - t;
+    api.fire('frame', t);
   }
 
   function drawCurrentFrame() {

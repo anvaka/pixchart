@@ -232,6 +232,11 @@ function initScene(canvas) {
       pendingTimeout = setTimeout(processNextInQueue, PAUSE_BETWEEN_CYCLES);
     });
     currentPixChart.on('loading-progress', showLoadingProgress);
+    currentPixChart.on('frame', notifyFrame);
+  }
+
+  function notifyFrame(t) {
+    bus.fire('animation-frame', t);
   }
 
   function setImages(files) {

@@ -23,6 +23,7 @@ function fileDrop(dropHandler, onDropped) {
   }
 
   function prevent(e) {
+    if (e.target.classList.contains('knob')) return;
     e.preventDefault();
   }
 

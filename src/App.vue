@@ -85,6 +85,7 @@
   </div>
   <about @close='aboutVisible = false' v-if='aboutVisible'></about>
   <share></share>
+  <!--timeline></timeline-->
 </div>
 </template>
 
@@ -93,6 +94,7 @@ import About from './components/About';
 import Share from './components/Share';
 import ColorPicker from './components/ColorPicker';
 import Statistics from './components/Statistics';
+import Timeline from './components/Timeline';
 import bus from './bus';
 import createRandomImagePicker from './randomImagePicker';
 import config from './config';
@@ -108,7 +110,8 @@ export default {
     About,
     Share,
     ColorPicker,
-    Statistics
+    Statistics,
+    Timeline
   },
   mounted() {
     ensureBodyHasSidebarStyle();
