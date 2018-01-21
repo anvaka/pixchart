@@ -1,3 +1,8 @@
+/**
+ * This is the core of the rendering and single picture life cycle.
+ * It lives in its own folder, and has no dependencies on vue app - 
+ * can be easily ported to a separate package (TODO: do it?)
+ */
 var eventify = require('ngraph.events');
 var createShaders = require('./lib/createShaders');
 var glUtils = require('./lib/gl-utils.js');
@@ -31,6 +36,7 @@ function pixChart(imageLink, options) {
   var nextAnimationFrame, pendingTimeout;
 
   var disposed = false;
+  var isPaused = false;
   var framesCount = options.framesCount || 120;
 
   var currentFrameNumber = state === ANIMATION_COLLAPSE ? 0 : framesCount;
@@ -79,7 +85,8 @@ function pixChart(imageLink, options) {
     setFramesCount,
     setMaxPixels,
     colorGroupBy,
-    getBuckets
+    getBuckets,
+    togglePaused
   });
 
   // So that any event handler are subscribed.
@@ -133,6 +140,21 @@ function pixChart(imageLink, options) {
     loadImageWithCurrentOptions()
       .then(updateProgressAndLoadParticles)
       .then(initWebGLPrimitives);
+  }
+
+  function togglePaused() {
+    if (!imgInfo) return; // not loaded yet.
+
+    if (isPaused) {
+      nextAnimationFrame = requestAnimationFrame(animate);
+    } else {
+      cancelAnimationFrame(nextAnimationFrame);
+      nextAnimationFrame = 0;
+      clearTimeout(pendingTimeout);
+      pendingTimeout = 0;
+    }
+    isPaused = !isPaused;
+    return isPaused;
   }
 
   function updateProgressAndLoadParticles(image) {
@@ -201,8 +223,8 @@ function pixChart(imageLink, options) {
     frameChangeRate = (maxFrameSpan - minFrameSpan)/framesCount;
 
     particleAttributesBuffer = glUtils.createBuffer(gl, particles.particleAttributes);
-    // gl.enable(gl.BLEND);
-    // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   
     gl.useProgram(screenProgram.program);  
     

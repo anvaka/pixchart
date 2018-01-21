@@ -90,6 +90,7 @@
   <about @close='aboutVisible = false' v-if='aboutVisible'></about>
   <share></share>
   <!--timeline></timeline-->
+  <pause-monitor></pause-monitor>
 </div>
 </template>
 
@@ -99,6 +100,8 @@ import Share from './components/Share';
 import ColorPicker from './components/ColorPicker';
 import Statistics from './components/Statistics';
 import Timeline from './components/Timeline';
+import PauseMonitor from './components/PauseMonitor';
+
 import bus from './bus';
 import createRandomImagePicker from './randomImagePicker';
 import config from './config';
@@ -115,7 +118,8 @@ export default {
     Share,
     ColorPicker,
     Statistics,
-    Timeline
+    Timeline,
+    PauseMonitor
   },
   mounted() {
     ensureBodyHasSidebarStyle();

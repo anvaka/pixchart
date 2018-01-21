@@ -55,14 +55,11 @@ void main() {
     floor(a_particle[3] / u_sizes.x)/(u_sizes.y) + 0.5/u_sizes.y
   );
 
-  if (texture_pos.x >= 1.0 ) {
-    texture_pos.x = 0.5/u_sizes.x;
-  }
-  if (texture_pos.y >= 1.0) {
-    texture_pos.y = 0.5/u_sizes.y;
-  }
-
   v_color = texture2D(u_image, texture_pos);
+  if (texture_pos.x >= 1.0 || texture_pos.y >= 1.) {
+    // This point is beyond texture edge. ignore.
+    v_color.a = 0.;
+  }
 
   float factor = min(u_sizes[3]/u_sizes[1], u_sizes[2]/u_sizes[0]);
   vec2 source = vec2(

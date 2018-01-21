@@ -1,10 +1,14 @@
+/**
+ * This is "the brain" of the animation. It manages all parts of the 
+ * animation configuration and workflows.
+ */
 var queryState = require('query-state');
 var pixChart = require('./pixchart/index');
 var config = require('./config.js');
 var makeStats = require('./lib/makeStats');
 var createFileDropHandler = require('./lib/fileDrop');
-var bus = require('./bus');
 var formatNumber = require('./lib/formatNumber');
+var bus = require('./bus');
 
 var DEFAULT_ANIMATION_DURATION = 2.0; // in seconds, because visible to users
 var DEFAULT_BUCKET_COUNT = 512;
@@ -23,6 +27,7 @@ function initScene(canvas) {
   var queue = [];
   var lastIndex = 0;
   var pendingTimeout;
+
   var url = qs.get('link')
 
   if (url) {
@@ -30,42 +35,77 @@ function initScene(canvas) {
     pendingTimeout = setTimeout(processNextInQueue, 0);
   }
 
-  window.addEventListener('paste', handlePaste, false);
-  window.addEventListener('resize', updateSize);
-  bus.on('theme-changed', updateTheme);
+  listenToEvents();
 
   var dropHandler = createFileDropHandler(document.body, handleDroppedFiles);
 
+  // This is the state of the application - primary interaction point between Vue <-> WebGL
   var state = {
+    // State consists of two parts.
+
+    // # Part 1 - Data
     image: url,
     // We don't want to overwhelm people with options
-    // when they are browsing from mobile.
+    // when they are browsing from mobile, so we close side bar on small screens
     sidebarOpen: !config.isSmallScreen(),
-    qs,
-    duration: DEFAULT_ANIMATION_DURATION,
+    duration: DEFAULT_ANIMATION_DURATION, 
     bucketCount: getSafeBucketCount(qs.get('bc')),
     maxPixels: Math.min(window.innerWidth * window.innerHeight , 640 * 640) * window.devicePixelRatio,
     currentColorGroupBy: getSafeColorGroupBy(qs.get('groupBy')), 
     initialImageState: getSafeInitialState(qs.get('initial')),
-    getStatistics,
+    paused: false,
 
+    /**
+     * Requests to update scene dimensions.
+     */
     updateSize,
 
+    /**
+     * Destroy scene and release all resources.
+     */
     dispose,
     
+    /**
+     * Sets queue of images to play
+     */
     setImages,
+
+    /**
+     * Sets duration of single animation step (expand or collapse)
+     */
     setAnimationDuration,
+
+    /**
+     * Sets how many buckets should we use in the histogram.
+     */
     setBucketCount,
+
+    /**
+     * Sets maximum allowed amount of pixels.
+     */
     setMaxPixels,
+
+    /**
+     * Sets grouping method (rgb.r, hsv.h, etc.)
+     */
     setColorGroupBy,
+
+    /**
+     * Sets how scene should be rendered when ready. 
+     */
     setInitialState,
-    ignoreColor,
+
+    ignoreColor, // WIP
+    getStatistics,// WIP
   };
 
   setAnimationDuration(qs.get('d'));
 
+  // Yeah, this is not very good. But hey - this is a toy project. Adding abstraction
+  // layers isn't always good.
   window.sceneState = state;
-  return;
+
+  return; // We are done with public part.
 
   function ignoreColor(c) {
     if (currentPixChart) {
@@ -125,13 +165,10 @@ function initScene(canvas) {
     var files = [];
     for(var i = 0; i < items.length; ++i) {
       var file = items[i];
-      if (file.kind == "file") {
-        files.push(file.getAsFile());
-      }
+      if (file.kind === 'file') files.push(file.getAsFile());
     }
-    if (files.length > 0) {
-      e.preventDefault();
-    }
+
+    if (files.length > 0) e.preventDefault();
 
     handleDroppedFiles(files);
   }
@@ -147,6 +184,13 @@ function initScene(canvas) {
     return file && file.type && file.type.indexOf('image/') === 0;
   }
 
+  function listenToEvents() {
+    window.addEventListener('paste', handlePaste, false);
+    window.addEventListener('resize', updateSize);
+    canvas.addEventListener('click', onCanvasClick);
+    bus.on('theme-changed', updateTheme);
+  }
+
   function dispose() {
     if (pendingTimeout) {
       clearTimeout(pendingTimeout);
@@ -154,12 +198,29 @@ function initScene(canvas) {
     }
     window.removeEventListener('resize', updateSize);
     window.removeEventListener('paste', handlePaste, false);
+    canvas.removeEventListener('click', onCanvasClick);
     bus.off('theme-changed', updateTheme)
 
     dropHandler.dispose();
 
     currentPixChart.dispose();
     currentPixChart = null;
+  }
+
+  function onCanvasClick(e) {
+    if (currentPixChart) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      state.paused = currentPixChart.togglePaused();
+      if (state.paused) {
+        clearTimeout(pendingTimeout);
+      }
+      bus.fire('pause-changed', state.paused, {
+        x: e.clientX,
+        y: e.clientY
+      });
+    }
   }
 
   function updateSize() {
@@ -295,10 +356,6 @@ function initScene(canvas) {
     }
   }
 
-  function toFrames(seconds) {
-    return seconds * 60; // Assuming 60 fps.
-  }
-
   function processNextInQueue(forceDispose) {
     if (pendingTimeout) {
       clearTimeout(pendingTimeout);
@@ -313,4 +370,6 @@ function initScene(canvas) {
   }
 }
 
-// TODO: color themes.   background: #343945;
+function toFrames(seconds) {
+  return seconds * 60; // Assuming 60 fps.
+}
