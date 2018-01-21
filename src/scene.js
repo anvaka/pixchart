@@ -11,7 +11,7 @@ var formatNumber = require('./lib/formatNumber');
 var bus = require('./bus');
 
 var DEFAULT_ANIMATION_DURATION = 2.0; // in seconds, because visible to users
-var DEFAULT_BUCKET_COUNT = 512;
+var DEFAULT_BUCKET_COUNT = 510;
 var PAUSE_BETWEEN_CYCLES = 1000; // in milliseconds, because for developers
 
 var qs = queryState({
@@ -54,6 +54,7 @@ function initScene(canvas) {
     currentColorGroupBy: getSafeColorGroupBy(qs.get('groupBy')), 
     initialImageState: getSafeInitialState(qs.get('initial')),
     paused: false,
+    isFirstRun: queue.length === 0,
 
     /**
      * Requests to update scene dimensions.
@@ -152,7 +153,7 @@ function initScene(canvas) {
   }
 
   function restartCurrentAnimation() {
-    if (!queue) return;
+    if (!queue.length) return;
 
     // TODO: Validate?
     lastIndex -= 1;
@@ -188,6 +189,7 @@ function initScene(canvas) {
     window.addEventListener('paste', handlePaste, false);
     window.addEventListener('resize', updateSize);
     canvas.addEventListener('click', onCanvasClick);
+    document.body.addEventListener('keydown', onKeyDown);
     bus.on('theme-changed', updateTheme);
   }
 
@@ -199,6 +201,7 @@ function initScene(canvas) {
     window.removeEventListener('resize', updateSize);
     window.removeEventListener('paste', handlePaste, false);
     canvas.removeEventListener('click', onCanvasClick);
+    document.body.removeEventListener('keydown', onKeyDown);
     bus.off('theme-changed', updateTheme)
 
     dropHandler.dispose();
@@ -207,22 +210,42 @@ function initScene(canvas) {
     currentPixChart = null;
   }
 
+  function onKeyDown(e) {
+    if (e.target !== document.body) return; // don't care
+    console.log(e.which);
+
+    if (e.which === 32) { // SPACEBAR
+      togglePaused({
+        clientX: window.innerWidth/2,
+        clientY: window.innerHeight/2,
+      });
+    } else if (e.which === 39 || e.which === 76) { // right arrow or `l` key (hello vim)
+      processNextInQueue(true);
+    } else if (e.which === 37 || e.which === 72){
+      processPrevInQueue(true);
+    }
+  }
+
   function onCanvasClick(e) {
     if (currentPixChart) {
       e.preventDefault();
       e.stopPropagation();
       
-      state.paused = currentPixChart.togglePaused();
-      if (state.paused) {
-        clearTimeout(pendingTimeout);
-      }
-      bus.fire('pause-changed', state.paused, {
-        x: e.clientX,
-        y: e.clientY
-      });
+      togglePaused(e);
     }
   }
 
+
+  function togglePaused(e) {
+    state.paused = currentPixChart.togglePaused();
+    if (state.paused) {
+      clearTimeout(pendingTimeout);
+    }
+    bus.fire('pause-changed', state.paused, {
+      x: e.clientX,
+      y: e.clientY
+    });
+  }
   function updateSize() {
     if (currentPixChart) {
       var sideBarWidthOffset = (!state.sidebarOpen || config.isSmallScreen ()) ? 0: config.sidebarWidth;
@@ -312,6 +335,7 @@ function initScene(canvas) {
   }
 
   function setImages(files) {
+    state.isFirstRun = false;
     if (files.length === 0) return;
     // TODO: Queued images are not visible anywhere.
     //  Might need to improve UX around this area
@@ -354,6 +378,14 @@ function initScene(canvas) {
       progressElement.style.opacity = '1';
       currentPixChart.setMaxPixels(maxPixels);
     }
+  }
+
+  function processPrevInQueue(forceDispose) {
+    if (queue.length === 0) return;
+
+    lastIndex -= 2;
+    if (lastIndex < 0) lastIndex = queue.length - 1;
+    processNextInQueue(forceDispose);
   }
 
   function processNextInQueue(forceDispose) {

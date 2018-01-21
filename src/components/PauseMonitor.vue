@@ -33,7 +33,7 @@ export default {
       this.y = (coordinates.y - 24) + 'px';
       if (this.pendingClear) {
         this.$el.classList.remove('playing');
-        cancelTimeout(this.pendingClear);
+        clearTimeout(this.pendingClear);
         this.pendingClear = 0;
       }
 

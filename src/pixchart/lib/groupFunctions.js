@@ -7,8 +7,10 @@ module.exports = {
   'hsl.h': function (r, g, b) { return rgbToHsl(r, g, b, 0); },
   'hsl.s': function (r, g, b) { return rgbToHsl(r, g, b, 1); },
   'hsl.l': function (r, g, b) { return rgbToHsl(r, g, b, 2); },
-  'avg.rgb': function (r, g, b) { 
-    return (r/255 + g/255 + b/255)/3;
+  'avg.rgb': {
+    getValue(r, g, b) { 
+      return (r/255 + g/255 + b/255)/3;
+    },
   },
   'harmonic.rgb': {
     getValue(r, g, b) { 

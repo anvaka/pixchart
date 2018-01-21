@@ -40,7 +40,7 @@
       <input type='file' id='local-files-button' class='nodisplay' name="files[]" multiple="" accept="image/*" @change='onFilePickerChanged'>
     </div>
 
-    <div class='group secondary-text'>
+    <div class='group secondary-text' :class='{"first-run": scene.isFirstRun}'>
       <h3 class='title'>Animation</h3>
       <div class='row'>
         <div class='col'>Initial state</div>
@@ -257,6 +257,9 @@ h3.title {
   margin-bottom: 7px;
   font-size: 21px;
   font-weight: normal;
+}
+.first-run {
+  opacity: 0.2;
 }
 .group {
   padding: 8px 7px;
