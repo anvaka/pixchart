@@ -52,6 +52,10 @@
         </div>
       </div>
       <div class='row'>
+        <div class='col'>Buckets count</div>
+        <div class='col'><input type='number' step="any" min='0' @keyup.enter='closeForm' v-model='bucketCount' autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
+      </div>
+      <div class='row'>
         <div class='col'>Duration (in seconds)</div>
         <div class='col'><input type='number' step="any" min='0' @keyup.enter='closeForm' v-model='duration' autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
       </div>
@@ -123,6 +127,7 @@ export default {
       scene: sceneState,
       inputSelected: false,
       aboutVisible: false,
+      bucketCount: sceneState.bucketCount,
       duration: sceneState.duration,
       maxPixels: sceneState.maxPixels,
       themes: themeManager.themes,
@@ -162,6 +167,9 @@ export default {
     },
     duration(newValue) {
       sceneState.setAnimationDuration(newValue);
+    },
+    bucketCount(newValue) {
+      sceneState.setBucketCount(newValue);
     },
     maxPixels(newValue) {
       clearTimeout(this.pendingPixelUpdate);

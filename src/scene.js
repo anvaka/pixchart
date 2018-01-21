@@ -7,6 +7,7 @@ var bus = require('./bus');
 var formatNumber = require('./lib/formatNumber');
 
 var DEFAULT_ANIMATION_DURATION = 2.0; // in seconds, because visible to users
+var DEFAULT_BUCKET_COUNT = 512;
 var PAUSE_BETWEEN_CYCLES = 1000; // in milliseconds, because for developers
 
 var qs = queryState({
@@ -42,6 +43,7 @@ function initScene(canvas) {
     sidebarOpen: !config.isSmallScreen(),
     qs,
     duration: DEFAULT_ANIMATION_DURATION,
+    bucketCount: getSafeBucketCount(qs.get('bc')),
     maxPixels: Math.min(window.innerWidth * window.innerHeight , 640 * 640) * window.devicePixelRatio,
     currentColorGroupBy: getSafeColorGroupBy(qs.get('groupBy')), 
     initialImageState: getSafeInitialState(qs.get('initial')),
@@ -53,10 +55,11 @@ function initScene(canvas) {
     
     setImages,
     setAnimationDuration,
+    setBucketCount,
     setMaxPixels,
     setColorGroupBy,
     setInitialState,
-    ignoreColor
+    ignoreColor,
   };
 
   setAnimationDuration(qs.get('d'));
@@ -91,6 +94,13 @@ function initScene(canvas) {
 
   function getSafeColorGroupBy(plainInput) {
     return plainInput || 'hsl.l';
+  }
+
+  function getSafeBucketCount(plainInput) {
+    var parsedValue = Number.parseInt(plainInput, 10);
+    if (Number.isNaN(parsedValue) || parsedValue < 1) return DEFAULT_BUCKET_COUNT;
+
+    return parsedValue;
   }
 
   function setColorGroupBy(groupBy) {
@@ -223,6 +233,7 @@ function initScene(canvas) {
       canvas,
       colorGroupBy: state.currentColorGroupBy,
       scaleImage: true,
+      bucketCount: state.bucketCount,
       collapsed: state.initialImageState === 'collapsed',
       maxPixels: state.maxPixels,
       framesCount: toFrames(state.duration),
@@ -257,6 +268,17 @@ function initScene(canvas) {
     state.duration = seconds;
     if (currentPixChart) {
       currentPixChart.setFramesCount(toFrames(seconds));
+    }
+  }
+
+  function setBucketCount(newCount) {
+    var bucketCount = Number.parseInt(newCount, 10);
+    if (Number.isNaN(bucketCount) || bucketCount < 1) return;
+
+    qs.set('bc', bucketCount);
+    state.bucketCount = bucketCount;
+    if (currentPixChart) {
+      restartCurrentAnimation();
     }
   }
 

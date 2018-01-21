@@ -27,15 +27,14 @@ function loadImage(imageObject, options) {
 
   function scale(image) {
     // scaling image may change/distort colors.
-    
     if (!maxPixels) {
       // TODO: Not sure if this is bad or good.
       maxPixels = Math.min(window.innerWidth * window.innerHeight , 640 * 640) * window.devicePixelRatio;
     }
 
     var ar = image.width/image.height;
-    var h0 = Math.sqrt(maxPixels * ar);
-    var w0 = maxPixels / h0;
+    var h0 = Math.ceil(Math.sqrt(maxPixels * ar));
+    var w0 = Math.ceil(maxPixels / h0);
     if (h0 < image.height || w0 < image.width) {
       image.width = h0;
       image.height = w0;

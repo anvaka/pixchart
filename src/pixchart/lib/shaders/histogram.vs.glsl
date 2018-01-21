@@ -16,7 +16,6 @@ uniform vec4 u_sizes;
 // [3] is particle index in the texture.
 attribute vec4 a_particle;
 
-varying vec2 v_tex_pos;
 varying vec4 v_color;
 
 float ease(float t) {
@@ -52,8 +51,8 @@ vec3 rgb2hsv(vec3 c) {
 
 void main() { 
   vec2 texture_pos = vec2(
-              fract(a_particle[3] / u_sizes.x) + 0.5/u_sizes.x,
-              floor(a_particle[3] / u_sizes.x)/(u_sizes.y) + 0.5/u_sizes.y
+    fract(a_particle[3] / u_sizes.x) + 0.5/u_sizes.x,
+    floor(a_particle[3] / u_sizes.x)/(u_sizes.y) + 0.5/u_sizes.y
   );
 
   if (texture_pos.x >= 1.0 ) {
@@ -67,14 +66,15 @@ void main() {
 
   float factor = min(u_sizes[3]/u_sizes[1], u_sizes[2]/u_sizes[0]);
   vec2 source = vec2(
-    2. * texture_pos.x - 1.,
+    (2. * (texture_pos.x) - 1.),
     1. - 2.* texture_pos.y
   ) * factor * u_sizes.xy/u_sizes.zw;
 
   vec2 target = vec2(
-    (2. * a_particle.x - 1.) * 0.9,
+    (2. * (a_particle.x)   - 1.) * 0.9,
     (2. * a_particle.y/(u_max_y_value) - 1.) * 0.9
   ) * factor * u_sizes.xy/u_sizes.zw; 
+  
 
 // This particle is allowed to live `timeSpan` steps, while current frame (u_frame[0]) is
 // advancing. Their time zero is counted at u_frame[1].
@@ -82,25 +82,27 @@ void main() {
   float t0 = clamp((u_frame[0] - u_frame[1])/(timeSpan - u_frame[1]), 0., 1.);
   float t = bease(t0, vec2(0., 0.19), vec2(0.61, 1)); // easeInOutCubic
 
-  if (a_particle.x < 0.) {
-    // these particles are filtered out.
-    target.x = 0.; //source.x; //cos(atan(source.y, source.x)) * 2.;
-    target.y = 0.; //source.y; //sin(atan(source.y, source.x)) * 2.;
-    v_color.a = 0.; //mix(0.1, 0., t);
-  }
+  // if (a_particle.x < 0.) {
+  //   // these particles are filtered out.
+  //   target.x = 0.; //source.x; //cos(atan(source.y, source.x)) * 2.;
+  //   target.y = 0.; //source.y; //sin(atan(source.y, source.x)) * 2.;
+  //   v_color.a = 0.; //mix(0.1, 0., t);
+  // }
 
   // This would give 3d
   // vec3 h = rgb2hsv(v_color.rgb);
   // float z = mix(0.,h[0], t);
   // float zCam = 2.;
-  // target.x = - target.x/(z - zCam);
+  // target.x = -target.x/(z - zCam);
   // target.y = -target.y/(z - zCam);
 
   // we want to have fast start/slow cool down on each animation phase
   float tmin = 1. - t;
   vec2 dest = u_frame[3] == 2. ? tmin * target + t * source : tmin * source + t * target;
-  //vec2 dest = tmin * tmin * source + 2. * tmin * arrival0 * t + t * t * target;
+  // vec2 dest = tmin * tmin * source + 2. * tmin * arrival0 * t + t * t * target;
   //vec2 dest = tmin * tmin * tmin * source + 3. * tmin * tmin * vec2(0., 0.1) * t + 3. * tmin * t * t * target/2. + target * t * t * t; 
+  //gl_Position = vec4(dest, 0, 1);
+  //gl_Position = vec4(dest, 0, 1);
   gl_Position = vec4(dest, 0, 1);
   gl_PointSize = max(1., ceil(factor));//= mix(srcSize, destSize, t);
 }

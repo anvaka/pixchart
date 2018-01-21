@@ -19,7 +19,8 @@ function loadParticles(image, options) {
   var width = cnv.width = image.width, height = cnv.height = image.height;
   var n = width * height;
 
-  var bucketsCount = 1000; //width; // TODO: Customize?
+  var bucketsCount = options.bucketCount || 42;
+  var bucketWidth = Math.ceil(width/bucketsCount); // in pixels.
 
   var maxYValue = 0;  
   var minVValue = Number.POSITIVE_INFINITY;
@@ -102,8 +103,6 @@ function loadParticles(image, options) {
       var r = pixels[invIndex + 0], g = pixels[invIndex + 1], b = pixels[invIndex + 2];
 
       var v = (getValue(r, g, b) - minVValue)/(maxVValue - minVValue);
-      if (v < minVValue) minVValue = v;
-      if (v > maxVValue) maxVValue = v;
       // v ranges from 0 to 1.
       var bucketNumber = Math.round(v * bucketsCount);
 
@@ -112,14 +111,16 @@ function loadParticles(image, options) {
         bucketNumber -= 1;
       }
 
-      currentYValue = bucketColors[bucketNumber] += 1;
+      currentYValue = (bucketColors[bucketNumber] += 1);
+      currentYValue -= 1;
       // assign this pixel to this height in the bucket
       // Note: if we want to be less jumpy during changes in particles count,
       // we can augment this code with previous particle configuration.
       var frameSpan = random.gaussian();
 
-      particleAttributes[idx + 0] = v;
-      particleAttributes[idx + 1] = currentYValue - 1;
+      particleAttributes[idx + 0] = (bucketNumber/bucketsCount) +
+       (currentYValue % bucketWidth)/(bucketsCount * bucketWidth);
+      particleAttributes[idx + 1] = Math.floor(currentYValue/bucketWidth);
       particleAttributes[idx + 2] = frameSpan;
       particleAttributes[idx + 3] = invIndex/4;
 
@@ -130,7 +131,7 @@ function loadParticles(image, options) {
         // TODO: Proper ignore logic here.
         particleAttributes[idx] = -1;
       } else  
-      if (currentYValue > maxYValue) maxYValue = currentYValue;
+      if (particleAttributes[idx + 1] > maxYValue) maxYValue = particleAttributes[idx + 1];
 
       idx += 4;
       if (performance.now() - start > 12) {

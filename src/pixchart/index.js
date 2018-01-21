@@ -40,7 +40,8 @@ function pixChart(imageLink, options) {
     ignoreColor: null,
     framesCount: framesCount,
     onProgress: reportImageStatsProgress,
-    colorGroupBy: options.colorGroupBy
+    colorGroupBy: options.colorGroupBy,
+    bucketCount: options.bucketCount
   }
 
   var progress = {
