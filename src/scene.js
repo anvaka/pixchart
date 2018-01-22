@@ -13,7 +13,6 @@ var bus = require('./bus');
 var DEFAULT_ANIMATION_DURATION = 2.0; // in seconds, because visible to users
 var DEFAULT_BUCKET_COUNT = 510;
 var PAUSE_BETWEEN_CYCLES = 1000; // in milliseconds, because for developers
-
 var qs = queryState({
   d: DEFAULT_ANIMATION_DURATION
 }, {useSearch: true});
@@ -38,6 +37,9 @@ function initScene(canvas) {
   listenToEvents();
 
   var dropHandler = createFileDropHandler(document.body, handleDroppedFiles);
+  var ignoredBuckets = readIgnoredBuckets(qs.get('ignore'));
+  // If this is first time loading, respect the ignore buckets.
+  var keepIgnoreBuckets = ignoredBuckets.size > 0;
 
   // This is the state of the application - primary interaction point between Vue <-> WebGL
   var state = {
@@ -96,7 +98,7 @@ function initScene(canvas) {
      */
     setInitialState,
 
-    ignoreColor, // WIP
+    ignoreBucket, // WIP
     getStatistics,// WIP
   };
 
@@ -108,23 +110,59 @@ function initScene(canvas) {
 
   return; // We are done with public part.
 
-  function ignoreColor(c) {
-    if (currentPixChart) {
-      currentPixChart.ignoreColor(c);
+  function readIgnoredBuckets(bucketList) {
+    var ignoredBucketSet = new Set();
+    if (!bucketList) return ignoredBucketSet;
+    if (typeof bucketList === 'number') {
+      ignoredBucketSet.add(bucketList);
+      return ignoredBucketSet;
     }
+
+    var buckets = bucketList.split('_')
+    buckets.forEach(b => {
+      var bucketNumber = Number.parseInt(b, 10);
+      if (!Number.isNaN(bucketNumber)) ignoredBucketSet.add(bucketNumber);
+    })
+
+    return ignoredBucketSet;
+  }
+  function ignoreBucket(bucketsToToggle) {
+    if (!bucketsToToggle) {
+      // If they want to clear buckets - let's clear.
+      clearIgnoreBuckets(/* keepQueryString */ true);
+    }
+
+    if (currentPixChart) {
+      // `bucketsToToggle` may be null if they want to clear ignore buckets.
+      toggleIgnoreBuckets(bucketsToToggle);
+
+      keepIgnoreBuckets = true;
+      restartCurrentAnimation(true);
+      //currentPixChart.ignoreBucketSet(ignoredBuckets);
+    }
+    qs.set('ignore', Array.from(ignoredBuckets).join('_'));
+  }
+
+  function toggleIgnoreBuckets(buckets) {
+    if (!buckets) return; // this is okay, means they are just clearing filters;
+
+    if (!Array.isArray(buckets)) buckets = [buckets];
+    buckets.forEach(c => {
+      if (ignoredBuckets.has(c.bucketNumber)) ignoredBuckets.delete(c.bucketNumber);
+      else ignoredBuckets.add(c.bucketNumber);
+    });
   }
 
   function getStatistics() {
-    if (currentPixChart) {
-      var buckets = currentPixChart.getBuckets();
-      return makeStats(buckets);
-    }
+    var particles = currentPixChart && currentPixChart.getParticles();
+    if (particles) return makeStats(particles);
   }
 
   function setInitialState(newInitialState) {
     state.initialImageState = newInitialState;
     qs.set('initial', newInitialState);
 
+    keepIgnoreBuckets = true;
     restartCurrentAnimation();
   }
 
@@ -212,16 +250,15 @@ function initScene(canvas) {
 
   function onKeyDown(e) {
     if (e.target !== document.body) return; // don't care
-    console.log(e.which);
 
-    if (e.which === 32) { // SPACEBAR
+    if (e.which === 32) { // spacebar
       togglePaused({
         clientX: window.innerWidth/2,
         clientY: window.innerHeight/2,
       });
     } else if (e.which === 39 || e.which === 76) { // right arrow or `l` key (hello vim)
       processNextInQueue(true);
-    } else if (e.which === 37 || e.which === 72){
+    } else if (e.which === 37 || e.which === 72) { // left arrow or `h` key
       processPrevInQueue(true);
     }
   }
@@ -241,6 +278,9 @@ function initScene(canvas) {
     if (state.paused) {
       clearTimeout(pendingTimeout);
     }
+    showLoadingProgress({
+      step: state.paused ? 'paused' : 'unpaused'
+    });
     bus.fire('pause-changed', state.paused, {
       x: e.clientX,
       y: e.clientY
@@ -278,7 +318,14 @@ function initScene(canvas) {
       if (queue.length > 1) {
         pendingTimeout = setTimeout(processNextInQueue, 500);
       }
-    } 
+    }  else if (progress.step === 'paused') {
+      progressElement.style.opacity = '1';
+      progressElement.innerHTML = 'Paused. Click anywhere to resume';
+      document.body.classList.add('paused');
+    } else if (progress.step === 'unpaused') {
+      progressElement.style.opacity = '0';
+      document.body.classList.remove('paused');
+    }
 
     if (cleanErrorClass && progress.step !== 'error') {
       // Just so that we are not doing this too often
@@ -299,6 +346,8 @@ function initScene(canvas) {
         pendingTimeout = 0;
       } 
 
+      bus.fire('image-unloaded', currentPixChart);
+
       currentPixChart.dispose();
       pendingTimeout = setTimeout(() => {
         createPixChart(imageLink)
@@ -309,15 +358,25 @@ function initScene(canvas) {
     }
   }
 
+  function clearIgnoreBuckets(keepQueryString) {
+    ignoredBuckets.clear();
+    if (!keepQueryString) qs.set('ignore', Array.from(ignoredBuckets).join('_'));
+  }
+
   function createPixChart(imageLink) {
     progressElement.innerText = 'Loading image...';
     progressElement.style.opacity = '1';
+
+    // Only keep buckets first time. (TODO: this is a bit fragile)
+    if (!keepIgnoreBuckets) clearIgnoreBuckets();
+    keepIgnoreBuckets = false;
 
     currentPixChart = pixChart(imageLink, {
       canvas,
       colorGroupBy: state.currentColorGroupBy,
       scaleImage: true,
       bucketCount: state.bucketCount,
+      ignoredBuckets,
       collapsed: state.initialImageState === 'collapsed',
       maxPixels: state.maxPixels,
       framesCount: toFrames(state.duration),

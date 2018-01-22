@@ -43,7 +43,7 @@ function pixChart(imageLink, options) {
 
   var particleLoaderSettings = {
     isCancelled: false,
-    ignoreColor: null,
+    ignoredBuckets: options.ignoredBuckets || null,
     framesCount: framesCount,
     onProgress: reportImageStatsProgress,
     colorGroupBy: options.colorGroupBy,
@@ -57,13 +57,12 @@ function pixChart(imageLink, options) {
     step: 'image',
   };
 
-  var buckets;
   var requestSizeUpdate = false;
 
   // Image size can be different than scene size (e.g. image is smaller than screen)
   // Thus, we need to track them both.
   var imageWidth, imageHeight, minFrameSpan, maxFrameSpan, frameChangeRate;
-  var imgInfo, particleAttributesBuffer, ignoreColor;
+  var imgInfo, particleAttributesBuffer, currentParticles;
 
   var sceneWidth = canvas.clientWidth;
   var sceneHeight = canvas.clientHeight;
@@ -79,13 +78,13 @@ function pixChart(imageLink, options) {
   var api = eventify({
     dispose,
     imageLink,
-    ignoreColor,
+    getParticles,
+    ignoreBucketSet,
     restartCycle: startExpandCollapseCycle,
     setSceneSize: setSceneSize,
     setFramesCount,
     setMaxPixels,
     colorGroupBy,
-    getBuckets,
     togglePaused
   });
 
@@ -94,8 +93,8 @@ function pixChart(imageLink, options) {
 
   return api;
 
-  function getBuckets() {
-    return buckets;
+  function getParticles() {
+    return currentParticles;
   }
 
   function startAnimationPipeline() {
@@ -134,8 +133,8 @@ function pixChart(imageLink, options) {
       .then(initWebGLPrimitives);
   }
 
-  function ignoreColor(newIgnoreColor) {
-    particleLoaderSettings.ignoreColor = newIgnoreColor * 1000;
+  function ignoreBucketSet(newIgnoredBucketsSet) {
+    particleLoaderSettings.ignoredBuckets = newIgnoredBucketsSet;
 
     loadImageWithCurrentOptions()
       .then(updateProgressAndLoadParticles)
@@ -160,13 +159,13 @@ function pixChart(imageLink, options) {
   function updateProgressAndLoadParticles(image) {
     progress.total = image.width * image.height;
     progress.step = 'pixels';
+    currentParticles = null;
     notifyProgress();
-    buckets = null;
 
     return loadParticles(image, particleLoaderSettings)
       .then(particles => {
+        currentParticles = particles;
         progress.step = 'done';
-        buckets = particles.buckets;
         notifyProgress();
 
         return {

@@ -43,15 +43,6 @@
     <div class='group secondary-text' :class='{"first-run": scene.isFirstRun}'>
       <h3 class='title'>Animation</h3>
       <div class='row'>
-        <div class='col'>Initial state</div>
-        <div class='col'>
-          <select v-model='initialImageState' @change='changeInitialState'>
-            <option value='expanded'>Image</option>
-            <option value='collapsed'>Chart</option>
-	        </select>
-        </div>
-      </div>
-      <div class='row'>
         <div class='col'>Buckets count</div>
         <div class='col'><input type='number' step="any" min='0' @keyup.enter='closeForm' v-model='bucketCount' autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
       </div>
@@ -71,17 +62,25 @@
 	        </select>
         </div>
       </div>
+      <div class='row'>
+        <div class='col'>Initial state</div>
+        <div class='col'>
+          <select v-model='initialImageState' @change='changeInitialState'>
+            <option value='expanded'>Image</option>
+            <option value='collapsed'>Chart</option>
+	        </select>
+        </div>
+      </div>
       <div class='row color-row'>
-        <div class="col">Background</div>
-        <div class="col">
+        <div class='col'>Background</div>
+        <div class='col'>
           <color-picker @select='selectTheme' :themes='themes' :selected='selectedTheme'></color-picker>
         </div>
       </div>
     </div>
-    <!--div class='group secondary-text'>
-      <h3 class='title'>Statistics</h3>
+    <div class='group secondary-text no-padding'>
       <statistics></statistics>
-    </div-->
+    </div>
   </div>
   <a class='hide-button' href='#' @click.prevent='scene.sidebarOpen = !scene.sidebarOpen'>
     <svg> <path d='M10,10 L5,5 L10,0z'></path> </svg>
@@ -254,6 +253,7 @@ a.highlighted {
 }
 h3.title {
   margin-top: 0px;
+  padding-top: 8px;
   margin-bottom: 7px;
   font-size: 21px;
   font-weight: normal;
@@ -262,7 +262,10 @@ h3.title {
   opacity: 0.2;
 }
 .group {
-  padding: 8px 7px;
+  padding: 0px 7px;
+  &.no-padding {
+    padding: 0;
+  }
   .col {
     align-items: center;
     display: flex;
@@ -311,7 +314,6 @@ h3.title {
 .sidebar-content {
   top: 42px;
   font-size: 14px;
-  padding-top: 8px;
   flex: 1;
   overflow-y: auto;
   width: 100%;

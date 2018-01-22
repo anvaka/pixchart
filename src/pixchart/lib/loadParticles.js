@@ -7,9 +7,9 @@ function loadParticles(image, options) {
   if (!options) throw new Error('Options required');
 
   var actualResolve;
-  var {onProgress, ignoreColor} = options;
+  var {onProgress, ignoredBuckets} = options;
 
-  var {getValue, normalizeV} = getGroupByFunction(options.colorGroupBy);
+  var {getValue, normalizeV, name: groupByFunctionName} = getGroupByFunction(options.colorGroupBy);
 
   var initIntervals = 0;
 
@@ -23,6 +23,7 @@ function loadParticles(image, options) {
   var bucketWidth = Math.ceil(width/bucketsCount); // in pixels.
 
   var maxYValue = 0;  
+  var nonFilteredMaxYValue = 0;
   var minVValue = Number.POSITIVE_INFINITY;
   var maxVValue = Number.NEGATIVE_INFINITY;
   
@@ -68,6 +69,7 @@ function loadParticles(image, options) {
     }
     if (typeof requestedGrouping === 'function') {
       return {
+        name: 'custom',
         normalizeV: false,
         getValue: requestedGrouping
       };
@@ -75,7 +77,8 @@ function loadParticles(image, options) {
     if (requestedGrouping && typeof requestedGrouping.getValue === 'function') {
       return {
         normalizeV: requestedGrouping.normalize,
-        getValue: requestedGrouping.getValue
+        getValue: requestedGrouping.getValue,
+        name: requestedGrouping.name
       };
     }
 
@@ -127,11 +130,13 @@ function loadParticles(image, options) {
       if (frameSpan < minFrameSpan) minFrameSpan = frameSpan;
       if (frameSpan > maxFrameSpan) maxFrameSpan = frameSpan;
 
-      if (bucketNumber === ignoreColor) { 
+      var bucketMaxY = particleAttributes[idx + 1];
+      if (ignoredBuckets && ignoredBuckets.has(bucketNumber)) { 
         // TODO: Proper ignore logic here.
         particleAttributes[idx] = -1;
       } else  
-      if (particleAttributes[idx + 1] > maxYValue) maxYValue = particleAttributes[idx + 1];
+      if (bucketMaxY > maxYValue) maxYValue = bucketMaxY;
+      if (bucketMaxY > nonFilteredMaxYValue) nonFilteredMaxYValue = bucketMaxY;
 
       idx += 4;
       if (performance.now() - start > 12) {
@@ -146,11 +151,17 @@ function loadParticles(image, options) {
     
     actualResolve({
       buckets: bucketColors,
+      groupByFunctionName,
       minFrameSpan,
       maxFrameSpan,
+      minVValue,
+      maxVValue,
       particleAttributes: particleAttributes,
       canvas: cnv,
-      maxYValue: maxYValue
+      maxYValue: maxYValue,
+      nonFilteredMaxYValue,
+      bucketWidth,
+      ignoredBuckets
     })
   }
 }

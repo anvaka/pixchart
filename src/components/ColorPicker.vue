@@ -1,6 +1,6 @@
 <template>
   <div class='themes-container'>
-    <a ref='toggleButton' href='#' class='current-theme' @click='toggleExpanded'><span class='sample secondary-border' :style='{"background-color": selected.color}'></span>{{selected.name}}
+    <a ref='toggleButton' href='#' class='current-theme' @click='toggleExpanded' title='Cick to toggle color theme picker'><span class='sample secondary-border' :style='{"background-color": selected.color}'></span>{{selected.name}}
     </a>
     <div class='themes' ref='themes' :class='{collapsed: !expanded}' >
       <a href='#' v-for='theme in themes' @click.prevent='selectTheme(theme)' class='theme-picker' :style='{"background-color": theme.color}' :title='theme.name'>

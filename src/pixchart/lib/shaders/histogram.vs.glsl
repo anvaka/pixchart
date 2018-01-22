@@ -79,12 +79,12 @@ void main() {
   float t0 = clamp((u_frame[0] - u_frame[1])/(timeSpan - u_frame[1]), 0., 1.);
   float t = bease(t0, vec2(0., 0.19), vec2(0.61, 1)); // easeInOutCubic
 
-  // if (a_particle.x < 0.) {
-  //   // these particles are filtered out.
-  //   target.x = 0.; //source.x; //cos(atan(source.y, source.x)) * 2.;
-  //   target.y = 0.; //source.y; //sin(atan(source.y, source.x)) * 2.;
-  //   v_color.a = 0.; //mix(0.1, 0., t);
-  // }
+  if (a_particle.x < 0.) {
+    // these particles are filtered out.
+    // target.x = 0.; //source.x; //cos(atan(source.y, source.x)) * 2.;
+    // target.y = 0.; //source.y; //sin(atan(source.y, source.x)) * 2.;
+    v_color.a = 0.; //mix(0.1, 0., t);
+  }
 
   // This would give 3d
   // vec3 h = rgb2hsv(v_color.rgb);
