@@ -37,6 +37,7 @@ function pixChart(imageLink, options) {
 
   var disposed = false;
   var isPaused = false;
+  var lastPauseRelease = 0;
   var framesCount = options.framesCount || 120;
 
   var currentFrameNumber = state === ANIMATION_COLLAPSE ? 0 : framesCount;
@@ -151,6 +152,7 @@ function pixChart(imageLink, options) {
       nextAnimationFrame = 0;
       clearTimeout(pendingTimeout);
       pendingTimeout = 0;
+      lastPauseRelease = new Date();
     }
     isPaused = !isPaused;
     return isPaused;
@@ -271,11 +273,15 @@ function pixChart(imageLink, options) {
     // can see the scene in its expanded or collapsed state.
     if (disposed) return;
     if (nextAnimationFrame || pendingTimeout) return; // already scheduled.
+    var delay = startDelay;
+    if (new Date() - lastPauseRelease < 500) {
+      delay = 0;
+    }
 
     pendingTimeout = setTimeout(() => {
       pendingTimeout = 0;
       nextAnimationFrame = requestAnimationFrame(animate)
-    }, startDelay);
+    }, delay);
   }
     
   function scheduleNextFrame() {
@@ -292,6 +298,10 @@ function pixChart(imageLink, options) {
     } else {
       if (currentFrameNumber < maxFrameSpan ) {
         currentFrameNumber += frameChangeRate;
+        if (initialState === ANIMATION_COLLAPSE) {
+          // Expand faster in this case
+          if (currentFrameNumber < maxFrameSpan) currentFrameNumber += frameChangeRate * 0.5;
+        }
         nextAnimationFrame = requestAnimationFrame(animate);
       } else {
         state = ANIMATION_COLLAPSE;
@@ -311,10 +321,15 @@ function pixChart(imageLink, options) {
       api.fire('cycle-complete');
     } else {
       // drive it back to original state
+      var delay = reverseDelay;
+      if (new Date() - lastPauseRelease < 500) {
+        // If pause was just released - don't wait.
+        delay = 0;
+      }
       pendingTimeout = setTimeout(() => {
         pendingTimeout = 0;
         nextAnimationFrame = requestAnimationFrame(animate);
-      }, reverseDelay);
+      }, delay);
     }
   }
 

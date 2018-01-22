@@ -10,6 +10,10 @@
             target='_blank' :title='provider.name'>
           </a>
         </div>
+        <div class='url'>
+          <input type='text' class='secondary-border primary-text' v-model='enteredUrl' ref='urlInput' @focus='selectAll'>
+          </div>
+        <div v-if='isLocalFiles' class='hint secondary-text'>Note: This link does not include your local images. Upload them to <a href='https://imgur.com'>imgur.com</a> to share.</div>
         <div class='hint secondary-text'>You can also copy the link from your browser's address bar.</div>
       </div>
     </div>
@@ -22,6 +26,7 @@ var providers = getProviders();
 
 export default {
   name: 'Share',
+  props: ['isLocalFiles'],
   mounted() {
     bus.on('open-share-dialog', this.openDialog, this);
     this.lastCallTime = new Date();
@@ -161,6 +166,25 @@ function getProviders() {
     }
   }
 }
+ .url {
+  input[type='text'] {
+    width: 100%;
+    height: 32px;
+    margin-top: 14px;
+
+    // TODO: This is copy-paste from settings. Unify?
+    background: transparent;
+    padding: 7px;
+    font-size: 16px;
+    border: none;
+    outline: none;
+    &:focus {
+      outline: none;
+      border: 1px dashed;
+      background: #13294f;
+    }
+  }
+ }
 
 .share-container {
   position: absolute;

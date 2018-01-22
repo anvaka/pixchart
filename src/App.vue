@@ -9,6 +9,7 @@
       </p>
       </div>
     </div>
+  <welcome v-if='webGLEnabled && scene.isFirstRun' @try='selectRandomImage'></welcome>
   <div class='settings-dialog darker-background' v-if='webGLEnabled' :class='{"collapsed": !scene.sidebarOpen}'>
     <div class='sidebar-buttons darker-background'>
       <a class='about-icon' href='#' @click.prevent='aboutVisible = !aboutVisible' title='click to learn more about this website'>
@@ -79,7 +80,7 @@
       </div>
     </div>
     <div class='group secondary-text no-padding'>
-      <statistics></statistics>
+      <statistics @filtered='onFiltered'></statistics>
     </div>
   </div>
   <a class='hide-button' href='#' @click.prevent='scene.sidebarOpen = !scene.sidebarOpen'>
@@ -87,7 +88,7 @@
   </a>
   </div>
   <about @close='aboutVisible = false' v-if='aboutVisible'></about>
-  <share></share>
+  <share :isLocalFiles='scene.isLocalFiles'></share>
   <!--timeline></timeline-->
   <pause-monitor></pause-monitor>
 </div>
@@ -100,6 +101,7 @@ import ColorPicker from './components/ColorPicker';
 import Statistics from './components/Statistics';
 import Timeline from './components/Timeline';
 import PauseMonitor from './components/PauseMonitor';
+import Welcome from './components/Welcome';
 
 import bus from './bus';
 import createRandomImagePicker from './randomImagePicker';
@@ -118,7 +120,8 @@ export default {
     ColorPicker,
     Statistics,
     Timeline,
-    PauseMonitor
+    PauseMonitor,
+    Welcome
   },
   mounted() {
     ensureBodyHasSidebarStyle();
@@ -223,6 +226,9 @@ export default {
     },
     changeInitialState() {
       sceneState.setInitialState(this.initialImageState);
+      hideIfNeeded();
+    },
+    onFiltered() {
       hideIfNeeded();
     }
   }

@@ -57,6 +57,7 @@ function initScene(canvas) {
     initialImageState: getSafeInitialState(qs.get('initial')),
     paused: false,
     isFirstRun: queue.length === 0,
+    isLocalFiles: false,
 
     /**
      * Requests to update scene dimensions.
@@ -167,8 +168,8 @@ function initScene(canvas) {
   }
 
   function getSafeInitialState(plainInput) {
-    if (plainInput === 'expanded') return plainInput
-    return 'collapsed';
+    if (plainInput === 'collapsed') return plainInput
+    return 'expanded';
   }
 
   function getSafeColorGroupBy(plainInput) {
@@ -202,12 +203,20 @@ function initScene(canvas) {
   function handlePaste(e){
     var items = e.clipboardData.items;
     var files = [];
+    var strings = [];
     for(var i = 0; i < items.length; ++i) {
       var file = items[i];
       if (file.kind === 'file') files.push(file.getAsFile());
+      else if (file.kind === 'string' && file.type === 'text/plain') strings.push(file);
     }
 
     if (files.length > 0) e.preventDefault();
+    if (files.length === 0 && strings.length === 1) {
+      // they are trying to paste a link?
+      strings[0].getAsString(s => {
+        if (s && s.match(/^http?s:\//)) setImages([s]);
+      })
+    }
 
     handleDroppedFiles(files);
   }
@@ -256,9 +265,9 @@ function initScene(canvas) {
         clientX: window.innerWidth/2,
         clientY: window.innerHeight/2,
       });
-    } else if (e.which === 39 || e.which === 76) { // right arrow or `l` key (hello vim)
+    } else if (e.which === 39) { // right arrow 
       processNextInQueue(true);
-    } else if (e.which === 37 || e.which === 72) { // left arrow or `h` key
+    } else if (e.which === 37) { // left arrow
       processPrevInQueue(true);
     }
   }
@@ -271,7 +280,6 @@ function initScene(canvas) {
       togglePaused(e);
     }
   }
-
 
   function togglePaused(e) {
     state.paused = currentPixChart.togglePaused();
@@ -286,6 +294,7 @@ function initScene(canvas) {
       y: e.clientY
     });
   }
+
   function updateSize() {
     if (currentPixChart) {
       var sideBarWidthOffset = (!state.sidebarOpen || config.isSmallScreen ()) ? 0: config.sidebarWidth;
@@ -307,8 +316,11 @@ function initScene(canvas) {
         // other objects cannot be shared
         qs.set('link', progress.imageObject.name)
         state.image = progress.imageObject.name;
+        state.isLocalFiles = false;
       } else {
         qs.set('link', '')
+        state.image = '';
+        state.isLocalFiles = true;
       }
       bus.fire('image-loaded');
     } else if (progress.step === 'error') {

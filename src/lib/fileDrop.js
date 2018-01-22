@@ -23,7 +23,8 @@ function fileDrop(dropHandler, onDropped) {
   }
 
   function prevent(e) {
-    if (e.target.classList.contains('knob')) return;
+    if (!hasFiles(e)) return;
+
     e.preventDefault();
   }
 
@@ -54,8 +55,22 @@ function fileDrop(dropHandler, onDropped) {
 
 
   function handleDragOver(e) {
+    if (!hasFiles(e)) return;
+
     e.preventDefault();
     dropHandler.classList.add('drag-over');
+  }
+
+  function hasFiles(e) {
+    if (!e.dataTransfer) return false;
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) return true;
+    var items = e.dataTransfer.items;
+    if (!items) return false;
+    for (var i = 0; i < items.length; ++i) {
+      if (items[i].kind === 'file') return true;
+    }
+
+    return false;
   }
 
   function handleDragEnd() {

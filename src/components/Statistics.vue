@@ -1,6 +1,7 @@
 <template>
   <div v-if='isVisible' class='statistic'>
     <h3 class='title'>Statistics</h3>
+    <i v-if='!filtered' class='reset-filters' >Click on a list item below to filter.</i>
     <div class='reset-filters' v-if='filtered'>The image is filtered. <a href='#' @click.prevent='removeFilters'>Click here</a>
     to reset all filters.</div>
     <div class='header'>
@@ -75,6 +76,7 @@ export default {
     },
     removeFilters() {
       sceneState.ignoreBucket(null);
+      this.$emit('filtered');
     },
     format(x) { return formatNumber(x); },
     ignoreBucket(bucket, e) { 
@@ -85,6 +87,7 @@ export default {
       } else {
         sceneState.ignoreBucket(bucket); 
       }
+      this.$emit('filtered');
     }
   }
 }
@@ -130,6 +133,9 @@ function imageUnloaded() {
     display: flex;
     a {
       flex: 1;
+      height: 32px;
+      padding: 6px 0;
+      font-size: 16px;
       &.count {
         text-align: right;
       }
@@ -140,6 +146,11 @@ function imageUnloaded() {
 .reset-filters {
   padding: 0 8px 16px;
   text-align: center;
+}
+i.reset-filters  {
+  padding: 0;
+  display: inline-block;
+  width: 100%;
 }
 
 .table-row {

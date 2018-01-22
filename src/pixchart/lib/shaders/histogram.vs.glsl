@@ -77,7 +77,8 @@ void main() {
 // advancing. Their time zero is counted at u_frame[1].
   float timeSpan = a_particle.z;
   float t0 = clamp((u_frame[0] - u_frame[1])/(timeSpan - u_frame[1]), 0., 1.);
-  float t = bease(t0, vec2(0., 0.19), vec2(0.61, 1)); // easeInOutCubic
+  //float t = bease(t0, vec2(0., 0.19), vec2(0.61, 1)); // easeInOutCubic
+  float t = ease(t0);
 
   if (a_particle.x < 0.) {
     // these particles are filtered out.
@@ -86,9 +87,9 @@ void main() {
     v_color.a = 0.; //mix(0.1, 0., t);
   }
 
-  // This would give 3d
+  // // This would give 3d
   // vec3 h = rgb2hsv(v_color.rgb);
-  // float z = mix(0.,h[0], t);
+  // float z = mix(0., h[0], t);
   // float zCam = 2.;
   // target.x = -target.x/(z - zCam);
   // target.y = -target.y/(z - zCam);
