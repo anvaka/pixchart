@@ -8,7 +8,7 @@
         The particles are arranged according to color intensities into a histogram.
       </p>
       <p>
-        The website was created in response to <a href='https://www.reddit.com/r/dataisbeautiful/comments/7ol3gy/gaussian_distribution_oc/'>this reddit post.</a>
+        The website was created in response to <a href='https://www.reddit.com/r/dataisbeautiful/comments/7ol3gy/gaussian_distribution_oc/' class='highlighted'>this reddit post.</a>
         Thank you for the inspiration!
       </p>
       <ul>

@@ -8,6 +8,7 @@ var config = require('./config.js');
 var makeStats = require('./lib/makeStats');
 var createFileDropHandler = require('./lib/fileDrop');
 var formatNumber = require('./lib/formatNumber');
+var getBestMaxPixels = require('./lib/getBestMaxPixels');
 var bus = require('./bus');
 
 var DEFAULT_ANIMATION_DURATION = 2.0; // in seconds, because visible to users
@@ -52,7 +53,7 @@ function initScene(canvas) {
     sidebarOpen: !config.isSmallScreen(),
     duration: DEFAULT_ANIMATION_DURATION, 
     bucketCount: getSafeBucketCount(qs.get('bc')),
-    maxPixels: Math.min(window.innerWidth * window.innerHeight , 640 * 640) * window.devicePixelRatio,
+    maxPixels: getBestMaxPixels(),
     currentColorGroupBy: getSafeColorGroupBy(qs.get('groupBy')), 
     initialImageState: getSafeInitialState(qs.get('initial')),
     paused: false,

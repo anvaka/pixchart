@@ -1,5 +1,17 @@
+/**
+ * This is the core of particles preprocessing.
+ * 
+ * It asynchronously performs calculation of particles destinations.
+ * Depending on a value function, the algorithm processes all particles
+ * in just one pass (linear performance of particles count). If value function
+ * needs normalization, then algorithm iterates over particles twice.
+ */
 var random = require('ngraph.random')(42);
 var groupFunctions = require('./groupFunctions');
+
+// How many milliseconds we are allowed to process the particles before
+// giving control back to UI thread.
+var MAX_THREAD_TIME_MS = 12 * 6; // Picked by hand.
 
 module.exports = loadParticles;
 
@@ -132,14 +144,13 @@ function loadParticles(image, options) {
 
       var bucketMaxY = particleAttributes[idx + 1];
       if (ignoredBuckets && ignoredBuckets.has(bucketNumber)) { 
-        // TODO: Proper ignore logic here.
         particleAttributes[idx] = -1;
-      } else  
-      if (bucketMaxY > maxYValue) maxYValue = bucketMaxY;
+      } else if (bucketMaxY > maxYValue) maxYValue = bucketMaxY;
+
       if (bucketMaxY > nonFilteredMaxYValue) nonFilteredMaxYValue = bucketMaxY;
 
       idx += 4;
-      if (performance.now() - start > 12) {
+      if (performance.now() - start > MAX_THREAD_TIME_MS) {
         scheduleWork();
         return;
       }  
