@@ -11,7 +11,7 @@ var groupFunctions = require('./groupFunctions');
 
 // How many milliseconds we are allowed to process the particles before
 // giving control back to UI thread.
-var MAX_THREAD_TIME_MS = 12 * 6; // Picked by hand.
+var MAX_THREAD_TIME_MS = 12 * 3; // Picked by hand.
 
 module.exports = loadParticles;
 
@@ -22,6 +22,7 @@ function loadParticles(image, options) {
   var {onProgress, ignoredBuckets} = options;
 
   var {getValue, normalizeV, name: groupByFunctionName} = getGroupByFunction(options.colorGroupBy);
+  var maxThreadTime = options.maxFrameSpan || MAX_THREAD_TIME_MS;
 
   var initIntervals = 0;
 
@@ -112,6 +113,7 @@ function loadParticles(image, options) {
     var start = performance.now(); 
     var currentYValue;
     var pixelsCount = 4 * n;
+    var isStochastic = options.stochastic;
 
     while (idx < pixelsCount) { 
       var invIndex = pixelsCount - idx - 4;
@@ -136,13 +138,14 @@ function loadParticles(image, options) {
       particleAttributes[idx + 0] = (bucketNumber/bucketsCount) +
        (currentYValue % bucketWidth)/(bucketsCount * bucketWidth);
       particleAttributes[idx + 1] = Math.floor(currentYValue/bucketWidth);
-      particleAttributes[idx + 2] = frameSpan;
+      particleAttributes[idx + 2] = isStochastic ? frameSpan : 0;
       particleAttributes[idx + 3] = invIndex/4;
 
       if (frameSpan < minFrameSpan) minFrameSpan = frameSpan;
       if (frameSpan > maxFrameSpan) maxFrameSpan = frameSpan;
 
       var bucketMaxY = particleAttributes[idx + 1];
+      // TODO: this should be based on custom callback.
       if (ignoredBuckets && ignoredBuckets.has(bucketNumber)) { 
         particleAttributes[idx] = -1;
       } else if (bucketMaxY > maxYValue) maxYValue = bucketMaxY;
@@ -150,7 +153,7 @@ function loadParticles(image, options) {
       if (bucketMaxY > nonFilteredMaxYValue) nonFilteredMaxYValue = bucketMaxY;
 
       idx += 4;
-      if (performance.now() - start > MAX_THREAD_TIME_MS) {
+      if (performance.now() - start > maxThreadTime) {
         scheduleWork();
         return;
       }  
@@ -159,6 +162,7 @@ function loadParticles(image, options) {
     console.timeEnd('initParticles');
     console.log('initialized in ' + initIntervals + ' intervals; Max Value:', maxYValue);
     console.log('Color range: ', minVValue, maxVValue);
+    console.log('Lifespan range: ', minFrameSpan, maxFrameSpan);
     
     actualResolve({
       buckets: bucketColors,

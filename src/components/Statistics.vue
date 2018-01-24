@@ -2,7 +2,7 @@
   <div v-if='isVisible' class='statistic'>
     <h3 class='title'>Statistics</h3>
     <i v-if='!filtered' class='reset-filters' >Click on a list item below to filter.</i>
-    <div class='reset-filters' v-if='filtered'>The image is filtered. <a href='#' @click.prevent='removeFilters'>Click here</a>
+    <div class='reset-filters' v-if='filtered'>The image is filtered. <a href='#' @click.prevent='removeFilters' class='highlighted'>Click here</a>
     to reset all filters.</div>
     <div class='header'>
       <a href='#' @click.prevent='sortBy("bucketNumber")' class='secondary-text' title='Click to sort by bucket'>

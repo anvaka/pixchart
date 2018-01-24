@@ -72,6 +72,17 @@
 	        </select>
         </div>
       </div>
+      <!-- <div class='row'>
+        <div class='col'>Animation type</div>
+        <div class='col'>
+          <select v-model='animationType' @change='changeAnimation'>
+            <option value='linear-stochastic'>Linear - Random Speed</option>
+            <option value='linear-constant'>Linear - Constant Speed</option>
+            <option value='bezier-stochastic'>Bezier - Random Speed</option>
+            <option value='bezier-constant'>Bezier - Constant Speed</option>
+	        </select>
+        </div>
+      </div> -->
       <div class='row color-row'>
         <div class='col'>Background</div>
         <div class='col'>
@@ -133,6 +144,7 @@ export default {
       scene: sceneState,
       inputSelected: false,
       aboutVisible: false,
+      animationType: sceneState.animationType,
       bucketCount: sceneState.bucketCount,
       duration: sceneState.duration,
       maxPixels: sceneState.maxPixels,
@@ -228,6 +240,11 @@ export default {
       sceneState.setInitialState(this.initialImageState);
       hideIfNeeded();
     },
+
+    changeAnimation() {
+      sceneState.setAnimationType(this.animationType);
+    },
+
     onFiltered() {
       hideIfNeeded();
     }

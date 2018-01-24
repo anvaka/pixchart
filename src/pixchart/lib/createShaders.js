@@ -1,4 +1,4 @@
-var vertexShader = require('./shaders/histogram.vs.glsl');
+var vertexShader = require('./shaders/histogram.vs.glsl.js');
 
 var fragmentShader = `
   precision highp float;
@@ -10,9 +10,9 @@ var fragmentShader = `
 
 module.exports = createShaders;
 
-function createShaders() {
+function createShaders(customInterpolate) {
   return {
     fragmentShader,
-    vertexShader
+    vertexShader: vertexShader(customInterpolate)
   }
 }

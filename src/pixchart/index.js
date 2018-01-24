@@ -48,7 +48,8 @@ function pixChart(imageLink, options) {
     framesCount: framesCount,
     onProgress: reportImageStatsProgress,
     colorGroupBy: options.colorGroupBy,
-    bucketCount: options.bucketCount
+    bucketCount: options.bucketCount,
+    stochastic: options.stochastic === undefined ? true : options.stochastic
   }
 
   var progress = {
@@ -73,7 +74,7 @@ function pixChart(imageLink, options) {
   var startDelay = typeof options.startDelay === 'number' ? options.startDelay : 2000;
   var reverseDelay = typeof options.reverseDelay === 'number' ? options.reverseDelay : 1500;
 
-  var shaders = createShaders();
+  var shaders = createShaders(options.interpolate);
   var screenProgram = glUtils.createProgram(gl, shaders.vertexShader, shaders.fragmentShader);
 
   var api = eventify({

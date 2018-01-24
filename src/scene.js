@@ -9,6 +9,7 @@ var makeStats = require('./lib/makeStats');
 var createFileDropHandler = require('./lib/fileDrop');
 var formatNumber = require('./lib/formatNumber');
 var getBestMaxPixels = require('./lib/getBestMaxPixels');
+var customInterpolation = require('./lib/customInterpolation');
 var bus = require('./bus');
 
 var DEFAULT_ANIMATION_DURATION = 2.0; // in seconds, because visible to users
@@ -41,6 +42,10 @@ function initScene(canvas) {
   var ignoredBuckets = readIgnoredBuckets(qs.get('ignore'));
   // If this is first time loading, respect the ignore buckets.
   var keepIgnoreBuckets = ignoredBuckets.size > 0;
+  var knownAnimations = new Set([
+    'linear-constant', 'linear-stochastic',
+    'bezier-constant',  'bezier-stochastic'
+  ])
 
   // This is the state of the application - primary interaction point between Vue <-> WebGL
   var state = {
@@ -56,6 +61,7 @@ function initScene(canvas) {
     maxPixels: getBestMaxPixels(),
     currentColorGroupBy: getSafeColorGroupBy(qs.get('groupBy')), 
     initialImageState: getSafeInitialState(qs.get('initial')),
+    animationType: getSafeAnimationType(qs.get('atype')),
     paused: false,
     isFirstRun: queue.length === 0,
     isLocalFiles: false,
@@ -79,6 +85,11 @@ function initScene(canvas) {
      * Sets duration of single animation step (expand or collapse)
      */
     setAnimationDuration,
+
+    /**
+     * Sets animation type from a set of predefined types
+     */
+    setAnimationType,
 
     /**
      * Sets how many buckets should we use in the histogram.
@@ -112,6 +123,11 @@ function initScene(canvas) {
 
   return; // We are done with public part.
 
+  function getSafeAnimationType(rawInput) {
+    if (knownAnimations.has(rawInput)) return rawInput;
+    return 'linear-stochastic';
+  }
+
   function readIgnoredBuckets(bucketList) {
     var ignoredBucketSet = new Set();
     if (!bucketList) return ignoredBucketSet;
@@ -128,6 +144,7 @@ function initScene(canvas) {
 
     return ignoredBucketSet;
   }
+
   function ignoreBucket(bucketsToToggle) {
     if (!bucketsToToggle) {
       // If they want to clear buckets - let's clear.
@@ -384,16 +401,25 @@ function initScene(canvas) {
     if (!keepIgnoreBuckets) clearIgnoreBuckets();
     keepIgnoreBuckets = false;
 
-    currentPixChart = pixChart(imageLink, {
+    var pixChartConfig = {
       canvas,
       colorGroupBy: state.currentColorGroupBy,
       scaleImage: true,
       bucketCount: state.bucketCount,
       ignoredBuckets,
+      stochastic: isAnimationStochastic(),
       collapsed: state.initialImageState === 'collapsed',
       maxPixels: state.maxPixels,
       framesCount: toFrames(state.duration),
-    });
+    };
+
+    if (isBezierAnimation()) {
+      pixChartConfig.interpolate = customInterpolation.bezierNoise; 
+    } else if (isVoigram()) {
+      pixChartConfig.interpolate = customInterpolation.voigram; 
+    }
+
+    currentPixChart = pixChart(imageLink, pixChartConfig);
 
     currentPixChart.on('cycle-complete', () => {
       pendingTimeout = setTimeout(processNextInQueue, PAUSE_BETWEEN_CYCLES);
@@ -415,6 +441,29 @@ function initScene(canvas) {
     lastIndex = 0;
 
     processNextInQueue();
+  }
+
+  function setAnimationType(animationType) {
+    var safeType = getSafeAnimationType(animationType)
+    if (safeType !== animationType) throw new Error('unknown animation ' + animationType);
+
+    qs.set('atype', animationType);
+    state.animationType = animationType;
+    if (!currentPixChart) return;
+
+    restartCurrentAnimation();
+  }
+
+  function isAnimationStochastic() {
+    return state.animationType.indexOf('stochastic') > -1;
+  }
+
+  function isBezierAnimation() {
+    return state.animationType.indexOf('bezier') > -1;
+  }
+
+  function isVoigram() {
+    return state.animationType.indexOf('voigram') > -1;
   }
 
   function setAnimationDuration(newCount) {
