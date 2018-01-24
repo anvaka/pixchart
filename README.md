@@ -1,6 +1,11 @@
-![pixchart](https://i.imgur.com/LOcOPQd.gif)
+[![pixchart](https://i.imgur.com/LOcOPQd.gif)](https://anvaka.github.io/share/part/?d=3.14&link=https%3A%2F%2Fi.imgur.com%2F9kieHIz.jpg&theme=zodiac&ignore=)
 
-This is just a fun little project, that turns any picture into a histogram.
+This is just a fun little project, that turns any picture into a histogram. A few examples:
+
+* [Gaussian Distribution](https://anvaka.github.io/share/part/?d=3.14&link=https%3A%2F%2Fi.imgur.com%2Fiyf2bRA.png&theme=zodiac&ignore=)
+* [The Falcon](https://anvaka.github.io/share/part/?link=https%3A%2F%2Fi.imgur.com%2Fhyt5lCu.jpg&d=5&ignore=&bc=300)
+* [The Falcon in 15 buckets](https://anvaka.github.io/share/part/?link=https%3A%2F%2Fi.imgur.com%2Fhyt5lCu.jpg&d=5&ignore=&bc=15&theme=bunting)
+* [Where is the dog?](https://anvaka.github.io/pixchart/?d=4&ignore=&link=https%3A%2F%2Fi.imgur.com%2FC4LHgpC.jpg&initial=collapsed&bc=10)
 
 For each pixel in the image, it maps a component of a color space to X axis and
 then counts how many pixels share the X coordinate. This number becomes Y coordinate
@@ -122,3 +127,15 @@ images from websites like wikipedia or imgur can be animated, while images from
 pinterest will likely not load.
 
 
+# Local Development
+
+```
+git clone https://github.com/anvaka/pixchart.git 
+cd pixchart
+
+npm install
+npm start
+```
+
+# License
+MIT
