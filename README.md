@@ -2,9 +2,9 @@
 
 This is just a fun little project, that turns any picture into a histogram. A few examples:
 
-* [Gaussian Distribution](https://anvaka.github.io/share/part/?d=3.14&link=https%3A%2F%2Fi.imgur.com%2Fiyf2bRA.png&theme=zodiac&ignore=)
-* [The Falcon](https://anvaka.github.io/share/part/?link=https%3A%2F%2Fi.imgur.com%2Fhyt5lCu.jpg&d=5&ignore=&bc=300)
-* [The Falcon in 15 buckets](https://anvaka.github.io/share/part/?link=https%3A%2F%2Fi.imgur.com%2Fhyt5lCu.jpg&d=5&ignore=&bc=15&theme=bunting)
+* [Gaussian Distribution](https://anvaka.github.io/pixchart/?d=3.14&link=https%3A%2F%2Fi.imgur.com%2Fiyf2bRA.png&theme=zodiac&ignore=)
+* [The Falcon](https://anvaka.github.io/pixchart/?link=https%3A%2F%2Fi.imgur.com%2Fhyt5lCu.jpg&d=5&ignore=&bc=300)
+* [The Falcon in 15 buckets](https://anvaka.github.io/pixchart/?link=https%3A%2F%2Fi.imgur.com%2Fhyt5lCu.jpg&d=5&ignore=&bc=15&theme=bunting)
 * [Where is the dog?](https://anvaka.github.io/pixchart/?d=4&ignore=&link=https%3A%2F%2Fi.imgur.com%2FC4LHgpC.jpg&initial=collapsed&bc=10)
 
 For each pixel in the image, it maps a component of a color space to X axis and
