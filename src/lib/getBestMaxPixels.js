@@ -8,5 +8,5 @@ function getBestMaxPixels() {
     dpr = 2; // Large screens tend to have faster CPUs
   }
 
-  return Math.min(windowArea, 640 * 640) * dpr*0.9;
+  return Math.round(Math.min(windowArea, 640 * 640) * dpr * 1.1);
 }
