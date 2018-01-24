@@ -11,7 +11,7 @@ var groupFunctions = require('./groupFunctions');
 
 // How many milliseconds we are allowed to process the particles before
 // giving control back to UI thread.
-var MAX_THREAD_TIME_MS = 12 * 3; // Picked by hand.
+var MAX_THREAD_TIME_MS = 12; // Picked by hand.
 
 module.exports = loadParticles;
 
