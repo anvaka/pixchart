@@ -12,7 +12,7 @@ var getBestMaxPixels = require('./lib/getBestMaxPixels');
 var customInterpolation = require('./lib/customInterpolation');
 var bus = require('./bus');
 
-var DEFAULT_ANIMATION_DURATION = 2.0; // in seconds, because visible to users
+var DEFAULT_ANIMATION_DURATION = 4.0; // in seconds, because visible to users
 var DEFAULT_BUCKET_COUNT = 510;
 var PAUSE_BETWEEN_CYCLES = 1000; // in milliseconds, because for developers
 var qs = queryState({
