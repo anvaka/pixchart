@@ -225,8 +225,8 @@ function pixChart(imageLink, options) {
     frameChangeRate = (maxFrameSpan - minFrameSpan)/framesCount;
 
     particleAttributesBuffer = glUtils.createBuffer(gl, particles.particleAttributes);
-    // gl.enable(gl.BLEND);
-    // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   
     gl.useProgram(screenProgram.program);  
     
