@@ -32,7 +32,7 @@
       <h3 class='title'>Image</h3>
       <div class='help-text secondary-color'>Paste image below or <label class='browse-btn primary-text' for="local-files-button">pick a file from your device</label></div>
       <form class='input-row' @submit.prevent='onSubmit' :class='{"focused": inputSelected}'>
-        <input class='image-picker primmary-background' type="text" placeholder="Paste image here" 
+        <input class='image-picker' type="text" placeholder="Paste image here" 
           v-model='scene.image'
           autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
           @focus='onInputFocused' @blur='inputSelected = false'>
@@ -344,11 +344,12 @@ h3.title {
   transition-duration: 0.3s;
   transition-timing-function: cubic-bezier(0.0,0.0,0.5,1);
 }
+
 .help-text {
   font-size: 12px;
   font-style: italic;
-
 }
+
 a::selection, div::selection, h3::selection, h4::selection, p::selection, input::selection {
   background: #d03094;
   color: #fff;
@@ -371,6 +372,7 @@ a::selection, div::selection, h3::selection, h4::selection, p::selection, input:
     flex: 1;
   }
 }
+
 .hide-button {
   position: absolute;
   height: control-bar-height - 1;
