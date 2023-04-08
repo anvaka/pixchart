@@ -1,0 +1,33 @@
+<!DOCTYPE html><html><head><script async src="https://www.googletagmanager.com/gtag/js?id=G-TXT6313TGG"></script><script>window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-TXT6313TGG');</script><meta property=og:title content="Pixel Chart"><meta property=og:image content=https://github.com/anvaka/pixchart/wiki/images/pixchart_icon.png><meta property=og:description content="Turn any image into a beautiful chart."><meta charset=utf-8><meta http-equiv=content-type content="text/html; charset=utf-8"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name=Description content="This website allows you to turn any image into a beautiful chart."><meta name=keywords content="pixels, chart, visualization, animation, webgl, particles"><meta name=author content="Andrei Kashcha"><title>Pixel Chart</title><style>.zodiac { background: #13294F}
+.bunting { background: #24354E}
+.east-bay { background: #475770}
+.carolina-blue { background: #9ABDDE}
+.hippie-blue { background: #51A2A7}
+.wood-bark { background: #312321}
+.white { background: #ffffff}
+.white-lilac { background: #E7E7E7}
+.dark-gray { background: #a8a8a8}
+.charcoal { background: #404040}
+.black20 { background: #212121}
+.black { background: #000000}
+.casablanka { background: #F2AD52}
+.pink { background: #E99E9B}
+.flamingo { background: #EC694D}
+.maroon { background: #BF3558}
+.rose-ebony { background: #664948}
+.espresso { background: #642B1C}
+.drop-help { display: none;}</style><link href=static/css/app.4c8ed064fbce25f28e04e2bce280b71d.css rel=stylesheet></head><body class=zodiac><canvas id=scene></canvas><div id=progress></div><div id=app></div><div class=drop-help><h2>Drop files here</h2></div><script>(function (){
+    // need to set theme here to avoid flickering of the color
+    var themeName = window.location.search.match(/\?.*theme=([^&]+)/);
+    if (!themeName) return; // default theme is fine
+    // Need to consult with the whitelist, to avoid "css injection"
+    var knownThemes = new Set(["zodiac","bunting","east-bay","carolina-blue","hippie-blue","wood-bark","white","white-lilac","dark-gray","charcoal","black20","black","casablanka","pink","flamingo","maroon","rose-ebony","espresso"])
+    if (knownThemes.has(themeName[1])) {
+      document.body.classList.remove('zodiac');
+      document.body.classList.add(themeName[1]);
+    }
+  })();</script><script type=text/javascript src=static/js/manifest.4e5fd33a7c501922aef3.js></script><script type=text/javascript src=static/js/vendor.d5ce0f9967139b66e35d.js></script><script type=text/javascript src=static/js/app.ee9cf0b91cd2ed6403d4.js></script></body></html>
